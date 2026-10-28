@@ -74,6 +74,7 @@ python () {
         file://0015-WebKitWebSrc-do-not-EOS-a-spurious-EOF-probe-that-pre-empted-real-content.patch \
         file://0016-GStreamer-bounded-buffering-for-large-progressive-downloads.patch \
         file://0017-WPE-join-and-register-with-Nexus-before-any-EGL-call.patch \
+        file://0018-GLContext-fall-back-to-a-pbuffer-without-EGL_KHR_surfaceless_context.patch \
     ')
 }
 # 0003-0006: vendor EGL (Broadcom V3D) without GBM/Mesa surfaceless: the default EGL display and the WPE platform fixes it needs.
@@ -108,6 +109,10 @@ python () {
 #       libv3ddriver.so as a last resort) immediately before dlopen("libnxpl.so"), mirroring the exact sequence already proven to work end-to-end
 #       in tools/vuplus-probe/vu_egl_probe.c. Regression-tested clean on the DM900 (freshly reflashed); GigaBlue confirmation still pending.
 
+# 0018: GLContext::createOffscreenContext() falls back to a pbuffer context when the EGL implementation has neither EGL_KHR_surfaceless_context
+#       nor EGL_KHR_surfaceless_opengl (VU+ Ultimo 4K: Nexus V3D, GLES 2.0 only). Without it no offscreen GL context could be created there and the
+#       web process died with a SIGSEGV (null Skia GL context) right after the Nexus join/register. Also guards that null Skia context.
+
 # Vendor eglplatform.h falls back to X11 types unless BROADCOM_PLATFORM is set
 # (see the libepoxy bbappend).
 CFLAGS:append = " -DBROADCOM_PLATFORM"
@@ -122,7 +127,7 @@ CXXFLAGS:append = " -DBROADCOM_PLATFORM"
 CFLAGS:append = " -DENABLE_C_LOOP=0"
 CXXFLAGS:append = " -DENABLE_C_LOOP=0"
 
-# The build is reproducible as it stands: the tarball plus the recipe's own two patches plus the seventeen above, in this order.
+# The build is reproducible as it stands: the tarball plus the recipe's own two patches plus the eighteen above, in this order.
 #
 # Development mode (incremental rebuilds): OE wipes the build directory whenever SRC_URI changes, and every source fix would cost a
 # clean ~2h rebuild. Instead, build from a persistent, already-patched tree with externalsrc, in local.conf like the other packages:
@@ -186,4 +191,7 @@ PARALLEL_MAKE = "-j 6 -k 0"
 # freshly reflashed DM900 (preload finds the DM900's own libEGL.so harmlessly; libnxpl.so still fails cleanly since it
 # doesn't exist there; page loads normally, no regression). GigaBlue confirmation still pending - this is the critical
 # remaining validation step for the whole 0017 saga.
-PKGR = "r12"
+# r13: patch 0018. The VU+ Ultimo 4K EGL (libv3ddriver.so, GLES 2.0) has no EGL_KHR_surfaceless_context: WebKit could not create any offscreen
+# context, Skia's GL context stayed null and the web process crashed (silently, SIGSEGV) right after the Nexus join/register of 0017.
+# 0018 falls back to the existing pbuffer context in that case and guards the null Skia context. Other boxes are unaffected.
+PKGR = "r13"

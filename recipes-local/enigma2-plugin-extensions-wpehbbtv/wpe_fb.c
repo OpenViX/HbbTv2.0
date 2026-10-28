@@ -2271,10 +2271,19 @@ static void apply_video_rect(int x, int y, int w, int h)
 }
 
 /* An application animates its video/broadcast object (grows, shrinks, slides in): every step would cut a different hole and move the video plane,
- * which shows as blinking. The rectangle is applied only once it has stayed the same for WPE_EGL_PIG_SETTLE_MS (default 300). */
+ * which shows as blinking. The rectangle is applied only once it has stayed the same for a while, and how long depends on what is on screen:
+ *  - no picture in graphics yet (whole screen) and a rectangle appears: WPE_EGL_PIG_FIRST_MS (default 2000). A loading animation (ZDF's)
+ *    parks the object at several places, each for a few hundred ms, before the application settles;
+ *  - a picture in graphics is showing and it moves or goes away: WPE_EGL_PIG_SETTLE_MS (default 300). Waiting longer would leave the video at
+ *    the old place while the page behind it has already changed. */
 static int pig_pending[4];
 static guint pig_timer;
-static int pig_settle_ms = -1;
+static int pig_settle_ms = -1, pig_first_ms = -1;
+
+static int pig_env_ms(const char *name, int def)
+{
+    return g_getenv(name) ? MAX(0, atoi(g_getenv(name))) : def;
+}
 
 static gboolean pig_apply_cb(gpointer data)
 {
@@ -2288,15 +2297,19 @@ static gboolean video_rect_idle(gpointer data)
 {
     int x = 0, y = 0, w = 0, h = 0;
     if (sscanf((const char *)data, "%d,%d,%d,%d", &x, &y, &w, &h) == 4) {
-        if (pig_settle_ms < 0)
-            pig_settle_ms = g_getenv("WPE_EGL_PIG_SETTLE_MS") ? MAX(0, atoi(g_getenv("WPE_EGL_PIG_SETTLE_MS"))) : 300;
-        if (pig_settle_ms == 0) {
+        if (pig_settle_ms < 0) {
+            pig_settle_ms = pig_env_ms("WPE_EGL_PIG_SETTLE_MS", 300);
+            pig_first_ms = pig_env_ms("WPE_EGL_PIG_FIRST_MS", 2000);
+        }
+        const gboolean to_full = w <= 0 || h <= 0 || (x <= 0 && y <= 0 && w >= 1280 && h >= 720);
+        const int ms = (plane_moved || to_full) ? pig_settle_ms : pig_first_ms;
+        if (ms == 0) {
             apply_video_rect(x, y, w, h);
         } else {
             pig_pending[0] = x; pig_pending[1] = y; pig_pending[2] = w; pig_pending[3] = h;
             if (pig_timer)
                 g_source_remove(pig_timer);
-            pig_timer = g_timeout_add((guint)pig_settle_ms, pig_apply_cb, NULL);
+            pig_timer = g_timeout_add((guint)ms, pig_apply_cb, NULL);
         }
     }
     g_free(data);

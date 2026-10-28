@@ -29,13 +29,13 @@ CONF=/etc/enigma2/wpehbbtv.conf
 if [ -f "$CONF" ]; then
 	while IFS='=' read -r k v; do
 		case $k in
-		WPE_HIDPI | WPE_FAST_ANIM | WPE_PERSIST | WPE_PERSIST_DIR | WPE_DEBUG | WPE_LIMIT_REPEAT | WPE_EGL | WPE_EGL_SETTLE_MS | WPE_EGL_MAX_DELAY_MS | WPE_EGL_KEY_MS | WPE_EGL_HOLD_MS | WPE_EGL_HOLD_CLEAR | WPE_NO_NEXUS_JOIN | WPE_EGL_RESYNC_MS | WPE_EGL_NO_HOLE | WPE_EGL_DEBUG_RECTS | WPE_NICE | WPE_TOLERANT | WPE_EGL_PIG_SETTLE_MS | WPE_EGL_DIP_MS | WPE_HW_ACCEL | WPE_EGL_NO_TRIM) eval "[ -n \"\${$k}\" ] || $k=\$v" ;;
+		WPE_HIDPI | WPE_FAST_ANIM | WPE_PERSIST | WPE_PERSIST_DIR | WPE_DEBUG | WPE_LIMIT_REPEAT | WPE_EGL | WPE_EGL_SETTLE_MS | WPE_EGL_MAX_DELAY_MS | WPE_EGL_KEY_MS | WPE_EGL_HOLD_MS | WPE_EGL_HOLD_CLEAR | WPE_NO_NEXUS_JOIN | WPE_EGL_RESYNC_MS | WPE_EGL_NO_HOLE | WPE_EGL_DEBUG_RECTS | WPE_NICE | WPE_TOLERANT | WPE_EGL_PIG_SETTLE_MS | WPE_EGL_PIG_FIRST_MS | WPE_EGL_DIP_MS | WPE_HW_ACCEL | WPE_EGL_NO_TRIM) eval "[ -n \"\${$k}\" ] || $k=\$v" ;;
 		esac
 	done <"$CONF"
 fi
-export WPE_HW_ACCEL WPE_EGL_NO_TRIM WPE_EGL_DIP_MS WPE_EGL_PIG_SETTLE_MS WPE_EGL_DEBUG_RECTS WPE_EGL_NO_HOLE WPE_NO_NEXUS_JOIN WPE_EGL_RESYNC_MS WPE_EGL_SETTLE_MS WPE_EGL_MAX_DELAY_MS WPE_EGL_KEY_MS WPE_EGL_HOLD_MS WPE_EGL_HOLD_CLEAR # read by wpe_fb --egl-sink (empty = its defaults)
+export WPE_HW_ACCEL WPE_EGL_NO_TRIM WPE_EGL_DIP_MS WPE_EGL_PIG_SETTLE_MS WPE_EGL_PIG_FIRST_MS WPE_EGL_DEBUG_RECTS WPE_EGL_NO_HOLE WPE_NO_NEXUS_JOIN WPE_EGL_RESYNC_MS WPE_EGL_SETTLE_MS WPE_EGL_MAX_DELAY_MS WPE_EGL_KEY_MS WPE_EGL_HOLD_MS WPE_EGL_HOLD_CLEAR # read by wpe_fb --egl-sink (empty = its defaults)
 # defaults for what the conf file (or the environment) leaves unset
-: "${WPE_EGL_SETTLE_MS:=400}" "${WPE_EGL_MAX_DELAY_MS:=0}" "${WPE_EGL_HOLD_MS:=0}" "${WPE_EGL_HOLD_CLEAR:=1}" "${WPE_EGL_KEY_MS:=150}" "${WPE_EGL_NO_HOLE:=1}" "${WPE_NICE:=-20}"
+: "${WPE_EGL_SETTLE_MS:=400}" "${WPE_EGL_MAX_DELAY_MS:=0}" "${WPE_EGL_HOLD_MS:=0}" "${WPE_EGL_HOLD_CLEAR:=1}" "${WPE_EGL_KEY_MS:=150}" "${WPE_EGL_NO_HOLE:=0}" "${WPE_NICE:=-20}"
 case "$WPE_HIDPI" in 1 | 1.0 | 1.25 | 1.5) ;; *) WPE_HIDPI=1.0 ;; esac
 WPE_PERSIST_DIR=${WPE_PERSIST_DIR:-/media/hdd/.wpe-data}
 case "$WPE_PERSIST_DIR" in /*[!A-Za-z0-9_./-]* | [!/]*) WPE_PERSIST_DIR=/media/hdd/.wpe-data ;; esac # an absolute plain path, else the default
@@ -63,14 +63,19 @@ mkdir -p "$XDG_RUNTIME_DIR" "$HOME" /tmp/wpe-fontconfig-cache
 chmod 700 "$XDG_RUNTIME_DIR"
 # The Dreambox vendor EGL crashes in glFlush() once an EGL fence sync exists (WebKit patch 0005 adds this opt-out)
 # Nexus based boxes (GigaBlue; enigma2's EGL renderer is listening) work with fences
-if [ "$WPE_EGL" = 1 ] || [ -e /dev/nexus ]; then
+# (a WEBKIT_DISABLE_GL_FENCE already in the environment wins: set it to 1 on a Nexus box whose GLES2-only driver has no fence sync)
+if [ -n "$WEBKIT_DISABLE_GL_FENCE" ]; then
+	export WEBKIT_DISABLE_GL_FENCE
+elif [ "$WPE_EGL" = 1 ] || [ -e /dev/nexus ]; then
 	export WEBKIT_DISABLE_GL_FENCE=0
 else
 	export WEBKIT_DISABLE_GL_FENCE=1
 fi
 # Skia: paint on the CPU with 2 painting threads
 export WEBKIT_SKIA_ENABLE_CPU_RENDERING=1
-export WEBKIT_SKIA_CPU_PAINTING_THREADS=2
+export WEBKIT_SKIA_CPU_PAINTING_THREADS=4
+export WEBKIT_SHM_READBACK_PIXMAP=0
+export WEBKIT_SKIA_MSAA_SAMPLE_COUNT=0
 
 # media pipeline diagnostics into the log (/tmp/wpe_fb.log): player, quirks and the dvb sinks; the page's own console/media events
 # come from debug.js (in the ORB directory) as "[page] ..." lines

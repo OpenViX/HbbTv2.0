@@ -1,0 +1,72 @@
+From: HbbTV2 experiment <noreply@localhost>
+Subject: [PATCH] GLContext: fall back to a pbuffer context when EGL has no surfaceless support
+
+The web process creates its offscreen contexts (the compositor's, Skia's, the sharing context) with GLContext::createOffscreen(). For a
+PlatformDisplay of type Surfaceless or Default (patch 0004) that means createSurfacelessContext(), which needs EGL_KHR_surfaceless_context
+or EGL_KHR_surfaceless_opengl, and createOffscreenContext() deliberately does not fall back to a pbuffer for that target.
+
+The Broadcom/Nexus V3D driver of the VU+ Ultimo 4K (libv3ddriver.so from libgles-vuultimo4k-17.1) advertises neither: its EGL extensions are
+only KHR_image(_base/_pixmap), KHR_vg_parent_image, KHR_gl_texture_2D/cubemap_image, KHR_lock_surface and KHR_fence_sync (and it is GLES 2.0
+only). No context could be created, PlatformDisplay::skiaGLContext() returned null and AcceleratedSurface dereferenced it, GL calls ran
+without a current context: the web process died with a SIGSEGV, silently (WEB PROCESS TERMINATED, nothing in dmesg), right after the Nexus
+join/register of patch 0017.
+
+- createOffscreenContext(): for Target::Surfaceless, when the EGL implementation really has no surfaceless support, continue to the existing
+  pbuffer fallback (createPbufferContext(): a 1x1 pbuffer surface, everything is rendered into FBOs anyway). Drivers that do support
+  surfaceless contexts behave exactly as before, GBM keeps failing instead of using a pbuffer.
+- AcceleratedSurface::RenderTarget::createSkiaSurfaceForFramebuffer(): do not dereference a missing Skia GL context, report it and leave the
+  Skia surface empty.
+
+---
+diff --git a/Source/WebCore/platform/graphics/egl/GLContext.cpp b/Source/WebCore/platform/graphics/egl/GLContext.cpp
+--- a/Source/WebCore/platform/graphics/egl/GLContext.cpp
++++ b/Source/WebCore/platform/graphics/egl/GLContext.cpp
+@@ -230,6 +230,14 @@
+     return makeUnique<GLContext>(display, context, surface, config);
+ }
+ 
++// Some vendor EGL implementations (Broadcom/Nexus V3D, e.g. VU+ Ultimo 4K) offer neither EGL_KHR_surfaceless_context nor
++// EGL_KHR_surfaceless_opengl: no context can be made current without a surface there.
++static bool eglSupportsSurfacelessContexts(GLDisplay& display)
++{
++    const char* extensions = eglQueryString(display.eglDisplay(), EGL_EXTENSIONS);
++    return GLContext::isExtensionSupported(extensions, "EGL_KHR_surfaceless_context") || GLContext::isExtensionSupported(extensions, "EGL_KHR_surfaceless_opengl");
++}
++
+ std::unique_ptr<GLContext> GLContext::createOffscreenContext(GLDisplay& display, Target target, EGLContext sharingContext)
+ {
+     if (auto context = createSurfacelessContext(display, target, sharingContext))
+@@ -246,9 +254,13 @@
+     case Target::GBM:
+ #endif
+     case Target::Surfaceless:
+-        // Do not fallback to pbuffers.
+-        RELEASE_LOG_INFO(Compositing, "Could not create EGL surfaceless context: %s.", lastErrorString());
+-        return nullptr;
++        // Do not fallback to pbuffers, unless the EGL implementation cannot do surfaceless contexts at all: then a
++        // pbuffer is the only way to get an offscreen context, and without one nothing can be rendered.
++        if (target != Target::Surfaceless || eglSupportsSurfacelessContexts(display)) {
++            RELEASE_LOG_INFO(Compositing, "Could not create EGL surfaceless context: %s.", lastErrorString());
++            return nullptr;
++        }
++        break;
+     default:
+         break;
+     }
+diff --git a/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/AcceleratedSurface.cpp b/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/AcceleratedSurface.cpp
+--- a/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/AcceleratedSurface.cpp
++++ b/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/AcceleratedSurface.cpp
+@@ -161,7 +161,12 @@
+     glGetIntegerv(GL_STENCIL_BITS, &stencilBits);
+ 
+     auto& display = PlatformDisplay::sharedDisplay();
+-    GLContext::ScopedGLContextCurrent scopedCurrent(*display.skiaGLContext());
++    auto* skiaGLContext = display.skiaGLContext();
++    if (!skiaGLContext) {
++        LOG_ERROR("AcceleratedSurface has no Skia GL context for the render target");
++        return;
++    }
++    GLContext::ScopedGLContextCurrent scopedCurrent(*skiaGLContext);
+ 
+     GrGLFramebufferInfo framebufferInfo;
+     framebufferInfo.fFBOID = fbo;

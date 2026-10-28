@@ -2,11 +2,41 @@
   "permissions": {
     "allow": [
       "Bash(cd /e/Enigma2Dev/OpenViX/hbbtv2.0/HbbTv2.0/recipes-local/enigma2-plugin-extensions-wpehbbtv; cat run_wpe.sh.rej wpe_fb.c.rej | tr -d '\\\\r'; rm *.orig)",
-      "Bash(cd /e/Enigma2Dev/OpenViX/hbbtv2.0/HbbTv2.0/recipes-local/enigma2-plugin-extensions-wpehbbtv; rm -f *.rej; grep -n \"egl_hold_ms\\\\|egl_key_fast_ms\\\\|KEY_FASTPATH\\\\|egl_dip_ms\\\\|egl_resync_ms\\\\|static.*held_take\\\\|static.*dip_copy\\\\|resync_note\\\\|static void egl_close\\\\|egl_ino\" wpe_fb.c | tr -d '\\\\r' | head -60; sed -n 25,40p run_wpe.sh | tr -d '\\\\r' | cut -c1-250)"
+      "Bash(cd /e/Enigma2Dev/OpenViX/hbbtv2.0/HbbTv2.0/recipes-local/enigma2-plugin-extensions-wpehbbtv; rm -f *.rej; grep -n \"egl_hold_ms\\\\|egl_key_fast_ms\\\\|KEY_FASTPATH\\\\|egl_dip_ms\\\\|egl_resync_ms\\\\|static.*held_take\\\\|static.*dip_copy\\\\|resync_note\\\\|static void egl_close\\\\|egl_ino\" wpe_fb.c | tr -d '\\\\r' | head -60; sed -n 25,40p run_wpe.sh | tr -d '\\\\r' | cut -c1-250)",
+      "Bash(file 0017*.patch)",
+      "Bash(git log *)",
+      "Bash(cd /e/Enigma2Dev && ls hbbtv2-egl | head -30; ls hbbtv2.0/hbbtv2/meta-hbbtv2/recipes-hbbtv/wpe-plugin | head; find / -maxdepth 4 -type d -iname \"*wpewebkit*\" 2>/dev/null | head; ls OpenViX/hbbtv2.0/HbbTv2.0/recipes-local/wpewebkit | head -60)",
+      "Read(//e//**)",
+      "Bash(sed -n 96,135p 0013*.patch | cut -c1-260; sed -n 176,266p 0013*.patch | cut -c1-260; sed -n 320,345p 0013*.patch | cut -c1-240)",
+      "Bash(cd /e/Enigma2Dev/OpenViX/hbbtv2.0/HbbTv2.0/recipes-local && grep -ln \"GLES3\\\\|gl3\\\\|glBlit\\\\|glTexStorage\\\\|glMapBuffer\\\\|glReadBuffer\\\\|PIXEL_PACK\" wpewebkit/*.patch wpewebkit*.bb wpewebkit*.inc libepoxy* 2>/dev/null; ls; ls -d */ | head -20; sed -n 1,25p wpewebkit/0006*.patch | cut -c1-240; grep -rn \"libepoxy\\\\|egl\\\\|gles\" --include=*.bbappend . | head)",
+      "Bash(mkdir -p /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/wk-x)",
+      "Bash(tar -xJf ../wk-src/wpewebkit-2.54.0.tar.xz --wildcards '*/Source/WebCore/platform/graphics/egl/*' '*/Source/WebCore/platform/graphics/skia/*' '*/Source/WebCore/platform/graphics/texmap/*' '*/Source/WebCore/platform/graphics/opengl/*' '*/Source/WebCore/platform/graphics/gbm/*' '*/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/*' '*/Source/WebCore/platform/graphics/GraphicsContextGL*' '*/Source/ThirdParty/skia/*')",
+      "Bash(tar -xJOf wpewebkit-2.54.0.tar.xz --wildcards '*/Source/WebCore/platform/*' '*/Source/WebKit/Shared/*' '*/Source/WebKit/WebProcess/*' '*/Source/WebKit/UIProcess/*')",
+      "Bash(mkdir -p __TRACKED_VAR__/vupl)",
+      "Bash(curl -fsSL -o libvupl.tgz https://source.mynonpublic.com/vuplus/release/libvupl/libvupl-0.1.0-vuultimo4k-20180502.r1.tar.gz)",
+      "Bash(python -I /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/elfsyms.py libvupl.so)",
+      "Bash(grep -v \"^[A-Za-z0-9+/=]\\\\{40,\\\\}$\")",
+      "Bash(curl -fsSL -o libgles.tgz https://source.mynonpublic.com/vuplus/release/libgles/libgles-vuultimo4k-17.1-20190424.r0.tar.gz)",
+      "Bash(tar -xzf libgles.tgz -C gl)",
+      "Bash(python -I /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/elfsyms.py libv3ddriver.so)",
+      "Bash(python -m venv /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/venv)",
+      "Bash(/c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/venv/Scripts/python.exe -I /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/dis.py libvupl.so VUGLES_InitPlatformAndDefaultDisplay VUGLES_InitPlatform VUGLES_RegisterDisplayPlatform)",
+      "Bash(tar -xJf ../wk-src/wpewebkit-2.54.0.tar.xz wpewebkit-2.54.0/Source/WebKit/WebProcess/glib/WebProcessGLib.cpp wpewebkit-2.54.0/Source/WebCore/platform/graphics/egl/GLDisplay.cpp)",
+      "Bash(rm -rf /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/p18)",
+      "Bash(mkdir -p /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/p18/a/Source/WebCore/platform/graphics/egl /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/p18/a/Source/WebKit/WebProcess/WebPage/CoordinatedGraphics /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/p18/b)",
+      "Bash(cp /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/wk-x/wpewebkit-2.54.0/__TRACKED_VAR__ /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/p18/a/__TRACKED_VAR__)",
+      "Bash(cp -r /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/p18/a/Source /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/p18/b/Source)",
+      "Bash(python -I /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/p18/edit.py /c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/p18)",
+      "Bash(sed 's#^--- a/#--- a/#')",
+      "Bash(sed -i -E 's#^\\(---|\\\\+\\\\+\\\\+\\) \\([ab]\\)/\\(\\\\S+\\)\\\\s.*#\\\\1 \\\\2/\\\\3#' body.diff)",
+      "Bash(python -I -c ' *)",
+      "Bash(python -I \"/c/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/recipe_edit.py\" wpewebkit_2.54.0.bb)"
     ],
     "additionalDirectories": [
       "E:\\Enigma2Dev\\OpenViX\\hbbtv2.0\\HbbTv2.0",
-      "E:\\Enigma2Dev\\OpenViX\\hbbtv2.0\\HbbTv2.0\\recipes-local\\enigma2-plugin-extensions-wpehbbtv"
+      "E:\\Enigma2Dev\\OpenViX\\hbbtv2.0\\HbbTv2.0\\recipes-local\\enigma2-plugin-extensions-wpehbbtv",
+      "E:\\Enigma2Dev\\OpenViX\\hbbtv2.0\\HbbTv2.0\\recipes-local\\wpewebkit",
+      "E:\\Enigma2Dev\\OpenViX\\hbbtv2.0\\HbbTv2.0\\recipes-local\\wpewebkit\\wpewebkit"
     ]
   }
 }
