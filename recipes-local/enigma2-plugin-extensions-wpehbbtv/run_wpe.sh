@@ -29,13 +29,15 @@ CONF=/etc/enigma2/wpehbbtv.conf
 if [ -f "$CONF" ]; then
 	while IFS='=' read -r k v; do
 		case $k in
-		WPE_HIDPI | WPE_FAST_ANIM | WPE_PERSIST | WPE_PERSIST_DIR | WPE_DEBUG | WPE_LIMIT_REPEAT | WPE_EGL | WPE_EGL_SETTLE_MS | WPE_EGL_MAX_DELAY_MS | WPE_EGL_KEY_MS | WPE_EGL_HOLD_MS | WPE_EGL_HOLD_CLEAR | WPE_NO_NEXUS_JOIN | WPE_EGL_RESYNC_MS | WPE_EGL_NO_HOLE | WPE_EGL_DEBUG_RECTS | WPE_NICE | WPE_TOLERANT | WPE_EGL_PIG_SETTLE_MS | WPE_EGL_PIG_FIRST_MS | WPE_EGL_DIP_MS | WPE_HW_ACCEL | WPE_EGL_NO_TRIM) eval "[ -n \"\${$k}\" ] || $k=\$v" ;;
+		WPE_HIDPI | WPE_FAST_ANIM | WPE_PERSIST | WPE_PERSIST_DIR | WPE_DEBUG | WPE_LIMIT_REPEAT | WPE_EGL | WPE_EGL_SETTLE_MS | WPE_EGL_MAX_DELAY_MS | WPE_EGL_KEY_MS | WPE_EGL_HOLD_MS | WPE_EGL_HOLD_CLEAR | WPE_NO_NEXUS_JOIN | WPE_EGL_RESYNC_MS | WPE_EGL_NO_HOLE | WPE_EGL_DEBUG_RECTS | WPE_NICE | WPE_TOLERANT | WPE_EGL_PIG_SETTLE_MS | WPE_EGL_PIG_FIRST_MS | WPE_EGL_DIP_MS | WPE_HW_ACCEL | WPE_EGL_NO_TRIM | WPE_COVER_AREA | WPE_SKIA_CACHE_MB | WPE_TEXTURE_POOL_MB | WPE_SKIA_CPU | WPE_SKIA_DDL | WPE_SKIA_GPU_THREADS | WPE_TILE_SIZE | WEBKIT_DISABLE_GL_FENCE) eval "[ -n \"\${$k}\" ] || $k=\$v" ;;
 		esac
 	done <"$CONF"
 fi
 export WPE_HW_ACCEL WPE_EGL_NO_TRIM WPE_EGL_DIP_MS WPE_EGL_PIG_SETTLE_MS WPE_EGL_PIG_FIRST_MS WPE_EGL_DEBUG_RECTS WPE_EGL_NO_HOLE WPE_NO_NEXUS_JOIN WPE_EGL_RESYNC_MS WPE_EGL_SETTLE_MS WPE_EGL_MAX_DELAY_MS WPE_EGL_KEY_MS WPE_EGL_HOLD_MS WPE_EGL_HOLD_CLEAR # read by wpe_fb --egl-sink (empty = its defaults)
 # defaults for what the conf file (or the environment) leaves unset
-: "${WPE_EGL_SETTLE_MS:=400}" "${WPE_EGL_MAX_DELAY_MS:=0}" "${WPE_EGL_HOLD_MS:=0}" "${WPE_EGL_HOLD_CLEAR:=1}" "${WPE_EGL_KEY_MS:=150}" "${WPE_EGL_NO_HOLE:=0}" "${WPE_NICE:=-20}"
+: "${WPE_EGL_SETTLE_MS:=0}" "${WPE_EGL_MAX_DELAY_MS:=0}" "${WPE_EGL_HOLD_MS:=0}" "${WPE_EGL_HOLD_CLEAR:=0}" "${WPE_EGL_KEY_MS:=400}" "${WPE_EGL_NO_HOLE:=0}" "${WPE_NICE:=-20}"
+: "${WPE_EGL_PIG_FIRST_MS:=3000}" "${WPE_EGL_DIP_MS:=300}" "${WPE_EGL_RESYNC_MS:=500}"
+: "${WPE_SKIA_CPU:=1}" "${WPE_TILE_SIZE:=256x256}" "${WPE_SKIA_DDL:=0}" "${WPE_SKIA_GPU_THREADS:=1}"
 case "$WPE_HIDPI" in 1 | 1.0 | 1.25 | 1.5) ;; *) WPE_HIDPI=1.0 ;; esac
 WPE_PERSIST_DIR=${WPE_PERSIST_DIR:-/media/hdd/.wpe-data}
 case "$WPE_PERSIST_DIR" in /*[!A-Za-z0-9_./-]* | [!/]*) WPE_PERSIST_DIR=/media/hdd/.wpe-data ;; esac # an absolute plain path, else the default
@@ -71,11 +73,26 @@ elif [ "$WPE_EGL" = 1 ] || [ -e /dev/nexus ]; then
 else
 	export WEBKIT_DISABLE_GL_FENCE=1
 fi
-# Skia: paint on the CPU with 2 painting threads
-export WEBKIT_SKIA_ENABLE_CPU_RENDERING=1
-export WEBKIT_SKIA_CPU_PAINTING_THREADS=4
+# Skia: paint on the CPU (WPE_SKIA_CPU=1, the default) or on the GPU (WPE_SKIA_CPU=0; tiles are then GPU textures, which is where the GPU heap runs out)
+case "$WPE_SKIA_CPU" in 0) export WEBKIT_SKIA_ENABLE_CPU_RENDERING=0 ;; *) export WEBKIT_SKIA_ENABLE_CPU_RENDERING=1 ;; esac
+#export WEBKIT_SKIA_CPU_PAINTING_THREADS=4
 export WEBKIT_SHM_READBACK_PIXMAP=0
 export WEBKIT_SKIA_MSAA_SAMPLE_COUNT=0
+# GPU memory (WebKit patch 0020). The GPU heap of a Nexus box is small and shared with enigma2; when it runs out ("BMMA_Alloc failed" / "nexus_memory:
+# Out of memory" in dmesg) tiles are lost = black rectangles. Unset = WebKit's own defaults. Set in /etc/enigma2/wpehbbtv.conf, for example:
+#   WPE_COVER_AREA=1        tiles for the visible area only (the default 2 keeps four times the visible area)
+#   WPE_SKIA_CACHE_MB=32    Skia GPU resource cache limit
+#   WPE_TEXTURE_POOL_MB=64  unused tile textures are released after 50 ms instead of 3 s above this pool size
+case "$WPE_COVER_AREA" in [1-4] | [1-4].[0-9]*) export WEBKIT_COVER_AREA_MULTIPLIER=$WPE_COVER_AREA ;; esac
+case "$WPE_SKIA_CACHE_MB" in '' | *[!0-9]*) ;; *) export WEBKIT_SKIA_RESOURCE_CACHE_MB=$WPE_SKIA_CACHE_MB ;; esac
+case "$WPE_TEXTURE_POOL_MB" in '' | *[!0-9]*) ;; *) export WEBKIT_TEXTURE_POOL_MAX_MB=$WPE_TEXTURE_POOL_MB ;; esac
+# With GPU painting (these exist in WebKit already, no patch needed):
+#   WPE_TILE_SIZE=256x256   tile size; the GPU default is viewport-wide (1280x256 at 720p) and a DDL tile update allocates a whole tile
+#   WPE_SKIA_DDL=0          paint with Skia GPU workers into pooled textures instead of deferred display lists (different memory use)
+#   WPE_SKIA_GPU_THREADS=1  GPU painting threads when DDL is off (1..4)
+case "$WPE_TILE_SIZE" in [1-9][0-9][0-9]x[1-9][0-9][0-9] | [1-9][0-9][0-9][0-9]x[1-9][0-9][0-9] | [1-9][0-9][0-9]x[1-9][0-9][0-9][0-9]) export WEBKIT_LAYERS_TILE_SIZE=$WPE_TILE_SIZE ;; esac
+case "$WPE_SKIA_DDL" in 0 | 1) export WEBKIT_SKIA_ENABLE_DDL=$WPE_SKIA_DDL ;; esac
+case "$WPE_SKIA_GPU_THREADS" in [1-4]) export WEBKIT_SKIA_GPU_PAINTING_THREADS=$WPE_SKIA_GPU_THREADS ;; esac
 
 # media pipeline diagnostics into the log (/tmp/wpe_fb.log): player, quirks and the dvb sinks; the page's own console/media events
 # come from debug.js (in the ORB directory) as "[page] ..." lines

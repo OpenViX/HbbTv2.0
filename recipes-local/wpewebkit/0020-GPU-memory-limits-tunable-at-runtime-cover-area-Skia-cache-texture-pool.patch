@@ -1,0 +1,134 @@
+From: xcentaurix
+Subject: [PATCH] Make the GPU memory limits tunable at runtime: tile cover area, Skia resource cache, texture pool
+
+Symptom (GigaBlue gbquad4kpro, Nexus/V3D): with GPU compositing some tiles come out as black rectangles; dmesg then shows BMMA_Alloc failed /
+nexus_memory: Out of memory. The GPU heap of these boxes is small (256 MB) and shared with enigma2, but none of WebKit's memory controls look at it:
+
+ - CoordinatedBackingStoreProxy: the cover rect is inflated by (multiplier - 1) / 2 on every side, multiplier 2.0 unless the MemoryPressureHandler
+   reports pressure (system RAM only) - so every layer with a backing store gets tiles for FOUR times the visible area.
+ - Skia's GPU resource cache limit is chosen from the system RAM (48 / 80 / 256 MB).
+ - BitmapTexturePool is unbounded unless BITMAP_TEXTURE_POOL_MAX_SIZE_IN_MB was defined at build time.
+
+New environment variables (all unset = the unchanged WebKit behaviour, so other boxes are not affected):
+
+   WEBKIT_COVER_AREA_MULTIPLIER=1..4     1 = only the visible area (a quarter of the tiles of the default 2)
+   WEBKIT_SKIA_RESOURCE_CACHE_MB=1..1024 Skia GPU resource cache limit
+   WEBKIT_TEXTURE_POOL_MAX_MB=1..4096    pool size above which unused tile textures are released after 50 ms instead of 3 s
+
+---
+diff --git a/Source/WebCore/platform/graphics/skia/PlatformDisplaySkia.cpp b/Source/WebCore/platform/graphics/skia/PlatformDisplaySkia.cpp
+index 6b3cac2..26159ad 100644
+--- a/Source/WebCore/platform/graphics/skia/PlatformDisplaySkia.cpp
++++ b/Source/WebCore/platform/graphics/skia/PlatformDisplaySkia.cpp
+@@ -248,6 +248,18 @@ static std::optional<size_t> glyphCacheTextureMaximumBytes()
+ 
+ static size_t initializeMaxResourceCacheBytes(GrDirectContext* grContext)
+ {
++    // WEBKIT_SKIA_RESOURCE_CACHE_MB: Skia keeps this much GPU memory for its cache. The default is chosen from the system RAM (48/80/256 MB),
++    // which says nothing about a small GPU heap shared with other processes.
++    if (const char* env = getenv("WEBKIT_SKIA_RESOURCE_CACHE_MB"); env && *env) {
++        char* end = nullptr;
++        unsigned long megabytes = strtoul(env, &end, 10);
++        if (end != env && megabytes > 0 && megabytes <= 1024) {
++            grContext->setResourceCacheLimit(megabytes * MB);
++            WTFLogAlways("WEBKIT_SKIA_RESOURCE_CACHE_MB=%lu", megabytes);
++            return grContext->getResourceCacheLimit();
++        }
++        WTFLogAlways("Invalid value '%s' for WEBKIT_SKIA_RESOURCE_CACHE_MB (1..1024), ignoring", env);
++    }
+     size_t memorySize = WTF::ramSize();
+     if (memorySize < s_lowEndDeviceMemoryThresholdBytes)
+         grContext->setResourceCacheLimit(s_lowEndMaxResourceCacheBytes);
+diff --git a/Source/WebCore/platform/graphics/texmap/BitmapTexturePool.cpp b/Source/WebCore/platform/graphics/texmap/BitmapTexturePool.cpp
+index 8b791bc..673f23b 100644
+--- a/Source/WebCore/platform/graphics/texmap/BitmapTexturePool.cpp
++++ b/Source/WebCore/platform/graphics/texmap/BitmapTexturePool.cpp
+@@ -42,11 +42,31 @@ namespace WebCore {
+ WTF_MAKE_TZONE_ALLOCATED_IMPL(BitmapTexturePool);
+ 
+ #if defined(BITMAP_TEXTURE_POOL_MAX_SIZE_IN_MB) && BITMAP_TEXTURE_POOL_MAX_SIZE_IN_MB > 0
+-static constexpr size_t s_poolSizeLimitInBytes = BITMAP_TEXTURE_POOL_MAX_SIZE_IN_MB * MB;
++static constexpr size_t s_defaultPoolSizeLimitInBytes = BITMAP_TEXTURE_POOL_MAX_SIZE_IN_MB * MB;
+ #else
+-static constexpr size_t s_poolSizeLimitInBytes = std::numeric_limits<size_t>::max();
++static constexpr size_t s_defaultPoolSizeLimitInBytes = std::numeric_limits<size_t>::max();
+ #endif
+ 
++// WEBKIT_TEXTURE_POOL_MAX_MB (runtime form of BITMAP_TEXTURE_POOL_MAX_SIZE_IN_MB): above this size the pool releases unused textures after 50 ms
++// instead of 3 s. In-use textures are not affected (see WEBKIT_COVER_AREA_MULTIPLIER for those).
++static size_t poolSizeLimitInBytes()
++{
++    static const size_t limit = [] {
++        size_t value = s_defaultPoolSizeLimitInBytes;
++        if (const char* env = getenv("WEBKIT_TEXTURE_POOL_MAX_MB"); env && *env) {
++            char* end = nullptr;
++            unsigned long megabytes = strtoul(env, &end, 10);
++            if (end != env && megabytes > 0 && megabytes <= 4096) {
++                value = megabytes * MB;
++                WTFLogAlways("WEBKIT_TEXTURE_POOL_MAX_MB=%lu", megabytes);
++            } else
++                WTFLogAlways("Invalid value '%s' for WEBKIT_TEXTURE_POOL_MAX_MB (1..4096), ignoring", env);
++        }
++        return value;
++    }();
++    return limit;
++}
++
+ static constexpr Seconds s_releaseUnusedSecondsTolerance { 3_s };
+ static constexpr Seconds s_releaseUnusedTexturesTimerInterval { 500_ms };
+ static constexpr Seconds s_releaseUnusedSecondsToleranceOnLimitExceeded { 50_ms };
+@@ -188,7 +208,7 @@ void BitmapTexturePool::enterLimitExceededModeIfNeeded()
+     if (m_onLimitExceededMode)
+         return;
+ 
+-    if (m_poolSizeInBytes > s_poolSizeLimitInBytes) {
++    if (m_poolSizeInBytes > poolSizeLimitInBytes()) {
+         // If we allocated a new texture and this caused that we went over the size limit, enter limit exceeded mode,
+         // set values for tolerance and interval for this mode, and trigger an immediate request to release textures.
+         // While on limit exceeded mode, we are more aggressive releasing textures, by polling more often and keeping
+@@ -208,7 +228,7 @@ void BitmapTexturePool::exitLimitExceededModeIfNeeded()
+ 
+     // If we're in limit exceeded mode and the pool size has become smaller than the limit,
+     // exit the limit exceeded mode and set the default values for interval and tolerance again.
+-    if (m_poolSizeInBytes <= s_poolSizeLimitInBytes) {
++    if (m_poolSizeInBytes <= poolSizeLimitInBytes()) {
+         m_onLimitExceededMode = false;
+         m_releaseUnusedSecondsTolerance = s_releaseUnusedSecondsTolerance;
+         m_releaseUnusedTexturesTimerInterval = s_releaseUnusedTexturesTimerInterval;
+diff --git a/Source/WebCore/platform/graphics/texmap/coordinated/CoordinatedBackingStoreProxy.cpp b/Source/WebCore/platform/graphics/texmap/coordinated/CoordinatedBackingStoreProxy.cpp
+index 30f5480..cd60a72 100644
+--- a/Source/WebCore/platform/graphics/texmap/coordinated/CoordinatedBackingStoreProxy.cpp
++++ b/Source/WebCore/platform/graphics/texmap/coordinated/CoordinatedBackingStoreProxy.cpp
+@@ -237,9 +237,31 @@ void CoordinatedBackingStoreProxy::invalidateRegion(const Vector<IntRect, 1>& di
+     }
+ }
+ 
++// WEBKIT_COVER_AREA_MULTIPLIER=1..4 (default 2): how far beyond the visible rect tiles are created and kept. The cover rect is inflated by
++// (multiplier - 1) / 2 on every side, so 2 means a cover rect of four times the visible area, for every layer with a backing store. The
++// MemoryPressureHandler only looks at system RAM; on a set-top box whose GPU heap is small and shared (Broadcom Nexus) that heap is exhausted
++// long before it reacts, tile textures fail to allocate and come out as black rectangles. 1 keeps only the visible area.
++static float defaultCoverAreaMultiplier()
++{
++    static const float multiplier = [] {
++        float value = 2.0f;
++        if (const char* env = getenv("WEBKIT_COVER_AREA_MULTIPLIER"); env && *env) {
++            char* end = nullptr;
++            float parsed = strtof(env, &end);
++            if (end != env && parsed >= 1.0f && parsed <= 4.0f) {
++                value = parsed;
++                WTFLogAlways("WEBKIT_COVER_AREA_MULTIPLIER=%g", value);
++            } else
++                WTFLogAlways("Invalid value '%s' for WEBKIT_COVER_AREA_MULTIPLIER (1..4), ignoring", env);
++        }
++        return value;
++    }();
++    return multiplier;
++}
++
+ void CoordinatedBackingStoreProxy::createOrDestroyTiles(const IntRect& unscaledVisibleRect, const IntRect& unscaledContentsRect, const IntSize& unscaledViewportSize, float contentsScale, int maxTextureSize, Damage& damage, Vector<uint32_t>& tilesToCreate, Vector<uint32_t>& tilesToRemove)
+ {
+-    float coverAreaMultiplier = MemoryPressureHandler::singleton().isUnderMemoryPressure() ? 1.0f : 2.0f;
++    float coverAreaMultiplier = MemoryPressureHandler::singleton().isUnderMemoryPressure() ? 1.0f : defaultCoverAreaMultiplier();
+     bool contentsScaleChanged = m_contentsScale != contentsScale;
+     m_contentsScale = contentsScale;
+ 

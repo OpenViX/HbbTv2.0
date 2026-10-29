@@ -75,6 +75,8 @@ python () {
         file://0016-GStreamer-bounded-buffering-for-large-progressive-downloads.patch \
         file://0017-WPE-join-and-register-with-Nexus-before-any-EGL-call.patch \
         file://0018-GLContext-fall-back-to-a-pbuffer-without-EGL_KHR_surfaceless_context.patch \
+        file://0019-PlatformDisplaySurfaceless-join-Nexus-before-the-first-EGL-call.patch \
+        file://0020-GPU-memory-limits-tunable-at-runtime-cover-area-Skia-cache-texture-pool.patch \
     ')
 }
 # 0003-0006: vendor EGL (Broadcom V3D) without GBM/Mesa surfaceless: the default EGL display and the WPE platform fixes it needs.
@@ -113,6 +115,13 @@ python () {
 #       nor EGL_KHR_surfaceless_opengl (VU+ Ultimo 4K: Nexus V3D, GLES 2.0 only). Without it no offscreen GL context could be created there and the
 #       web process died with a SIGSEGV (null Skia GL context) right after the Nexus join/register. Also guards that null Skia context.
 
+# 0019: PlatformDisplaySurfaceless::create() joins/registers with Nexus (patch 0017's quirk) before its first EGL call. On the VU+ Ultimo 4K that call
+#       (eglQueryString(EGL_NO_DISPLAY)) made the vendor libEGL write EGL_BAD_DISPLAY through a pthread key that was still 0 - i.e. into mimalloc's main
+#       heap - and the WebProcess died in the next big allocation (JSC::VM::create). The actual cause of "WEB PROCESS TERMINATED (reason 0)" there.
+
+# 0020: WEBKIT_COVER_AREA_MULTIPLIER / WEBKIT_SKIA_RESOURCE_CACHE_MB / WEBKIT_TEXTURE_POOL_MAX_MB. Nothing changes unless they are set. Black rectangles
+#       on the GigaBlue = the shared 256 MB GPU heap running out (dmesg: BMMA_Alloc failed); WebKit's own limits only look at system RAM.
+
 # Vendor eglplatform.h falls back to X11 types unless BROADCOM_PLATFORM is set
 # (see the libepoxy bbappend).
 CFLAGS:append = " -DBROADCOM_PLATFORM"
@@ -127,7 +136,7 @@ CXXFLAGS:append = " -DBROADCOM_PLATFORM"
 CFLAGS:append = " -DENABLE_C_LOOP=0"
 CXXFLAGS:append = " -DENABLE_C_LOOP=0"
 
-# The build is reproducible as it stands: the tarball plus the recipe's own two patches plus the eighteen above, in this order.
+# The build is reproducible as it stands: the tarball plus the recipe's own two patches plus the twenty above, in this order.
 #
 # Development mode (incremental rebuilds): OE wipes the build directory whenever SRC_URI changes, and every source fix would cost a
 # clean ~2h rebuild. Instead, build from a persistent, already-patched tree with externalsrc, in local.conf like the other packages:
@@ -194,4 +203,7 @@ PARALLEL_MAKE = "-j 6 -k 0"
 # r13: patch 0018. The VU+ Ultimo 4K EGL (libv3ddriver.so, GLES 2.0) has no EGL_KHR_surfaceless_context: WebKit could not create any offscreen
 # context, Skia's GL context stayed null and the web process crashed (silently, SIGSEGV) right after the Nexus join/register of 0017.
 # 0018 falls back to the existing pbuffer context in that case and guards the null Skia context. Other boxes are unaffected.
-PKGR = "r13"
+# r14: patch 0019. The WebProcess of the VU+ Ultimo 4K crashed in mimalloc: its first EGL call (PlatformDisplaySurfaceless::create) ran before the Nexus
+# join/register, so the vendor EGL stored an error code through an uninitialised pthread key into mimalloc's main heap. 0019 joins/registers first.
+# r15: patch 0020 (runtime GPU memory limits, off by default).
+PKGR = "r15"

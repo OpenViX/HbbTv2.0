@@ -774,10 +774,27 @@ static gboolean resync_cb(gpointer data)
     if (resync_w != out.w || resync_h != out.h)
         return G_SOURCE_REMOVE;
     int rows = 0, y0 = -1, y1 = -1;
+    /* which way does it differ? pixels that differ, and how many of them are opaque black (0xFF000000) or fully transparent (0) in the WebKit
+     * buffer ("buf") and in the shared frame before the correction ("old"). old black >> buf black: the shared frame had lost a paint (damage
+     * rects missed it) and the resync repaired it. buf black >> old black: WebKit's own buffer is black/empty there (a tile that is not painted
+     * yet or was lost) and the resync copies that into the shared frame. */
+    long diff_px = 0, buf_black = 0, buf_clear = 0, old_black = 0, old_clear = 0;
     for (int y = 0; y < out.h; y++) {
         guint8 *dst = out.canvas + (size_t)y * out.w * 4;
         if (!memcmp(dst, src + (size_t)y * resync_stride, (size_t)out.w * 4))
             continue;
+        {
+            const guint32 *d32 = (const guint32 *)dst, *s32 = (const guint32 *)(src + (size_t)y * resync_stride);
+            for (int x = 0; x < out.w; x++) {
+                if (d32[x] == s32[x])
+                    continue;
+                diff_px++;
+                buf_black += s32[x] == 0xFF000000u;
+                buf_clear += s32[x] == 0;
+                old_black += d32[x] == 0xFF000000u;
+                old_clear += d32[x] == 0;
+            }
+        }
         memcpy(dst, src + (size_t)y * resync_stride, (size_t)out.w * 4);
         if (y0 < 0)
             y0 = y;
@@ -785,7 +802,8 @@ static gboolean resync_cb(gpointer data)
         rows++;
     }
     if (rows) {
-        fprintf(stderr, "egl: resync corrected %d rows (%d..%d)\n", rows, y0, y1);
+        fprintf(stderr, "egl: resync corrected %d rows (%d..%d): %ld px differ, buf black %ld clear %ld, old black %ld clear %ld\n",
+            rows, y0, y1, diff_px, buf_black, buf_clear, old_black, old_clear);
         egl_mark_dirty(y0, y1);
         egl_publish();
     }
