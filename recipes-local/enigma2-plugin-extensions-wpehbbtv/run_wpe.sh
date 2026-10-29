@@ -36,8 +36,7 @@ fi
 export WPE_HW_ACCEL WPE_EGL_NO_TRIM WPE_EGL_DIP_MS WPE_EGL_PIG_SETTLE_MS WPE_EGL_PIG_FIRST_MS WPE_EGL_DEBUG_RECTS WPE_EGL_NO_HOLE WPE_NO_NEXUS_JOIN WPE_EGL_RESYNC_MS WPE_EGL_SETTLE_MS WPE_EGL_MAX_DELAY_MS WPE_EGL_KEY_MS WPE_EGL_HOLD_MS WPE_EGL_HOLD_CLEAR # read by wpe_fb --egl-sink (empty = its defaults)
 # defaults for what the conf file (or the environment) leaves unset
 : "${WPE_EGL_SETTLE_MS:=0}" "${WPE_EGL_MAX_DELAY_MS:=0}" "${WPE_EGL_HOLD_MS:=0}" "${WPE_EGL_HOLD_CLEAR:=0}" "${WPE_EGL_KEY_MS:=400}" "${WPE_EGL_NO_HOLE:=0}" "${WPE_NICE:=-20}"
-: "${WPE_EGL_PIG_FIRST_MS:=3000}" "${WPE_EGL_DIP_MS:=300}" "${WPE_EGL_RESYNC_MS:=500}"
-: "${WPE_SKIA_CPU:=1}" "${WPE_TILE_SIZE:=256x256}" "${WPE_SKIA_DDL:=0}" "${WPE_SKIA_GPU_THREADS:=1}"
+: "${WPE_EGL_PIG_FIRST_MS:=3000}" "${WPE_EGL_DIP_MS:=300}" "${WPE_SKIA_CPU:=1}"
 case "$WPE_HIDPI" in 1 | 1.0 | 1.25 | 1.5) ;; *) WPE_HIDPI=1.0 ;; esac
 WPE_PERSIST_DIR=${WPE_PERSIST_DIR:-/media/hdd/.wpe-data}
 case "$WPE_PERSIST_DIR" in /*[!A-Za-z0-9_./-]* | [!/]*) WPE_PERSIST_DIR=/media/hdd/.wpe-data ;; esac # an absolute plain path, else the default
