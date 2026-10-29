@@ -2492,6 +2492,31 @@ static gpointer orb_launch_thread(gpointer url)
     return NULL;
 }
 
+/* Debug mode (debug.js injected, WPE_DEBUG=1): every request of the page (the document, scripts, styles, images, XHR) and how it ended - an application
+ * that loads but does nothing usually lacks a script or a certificate, and the console says nothing about that. */
+static void on_resource_finished(WebKitWebResource *res, gpointer data)
+{
+    WebKitURIResponse *resp = webkit_web_resource_get_response(res);
+    fprintf(stderr, "res: %u %s\n", resp ? webkit_uri_response_get_status_code(resp) : 0, webkit_web_resource_get_uri(res));
+}
+
+static void on_resource_failed(WebKitWebResource *res, GError *err, gpointer data)
+{
+    fprintf(stderr, "res: FAILED %s: %s\n", webkit_web_resource_get_uri(res), err ? err->message : "?");
+}
+
+static void on_resource_failed_tls(WebKitWebResource *res, GTlsCertificate *cert, GTlsCertificateFlags flags, gpointer data)
+{
+    fprintf(stderr, "res: TLS ERROR 0x%x %s\n", (unsigned)flags, webkit_web_resource_get_uri(res));
+}
+
+static void on_resource_load_started(WebKitWebView *v, WebKitWebResource *res, WebKitURIRequest *req, gpointer data)
+{
+    g_signal_connect(res, "finished", G_CALLBACK(on_resource_finished), NULL);
+    g_signal_connect(res, "failed", G_CALLBACK(on_resource_failed), NULL);
+    g_signal_connect(res, "failed-with-tls-errors", G_CALLBACK(on_resource_failed_tls), NULL);
+}
+
 static gboolean on_load_failed(WebKitWebView *v, WebKitLoadEvent ev, const char *uri, GError *err, gpointer data)
 {
     fprintf(stderr, "load-failed: %s: %s\n", uri, err ? err->message : "?");
@@ -2987,6 +3012,8 @@ int main(int argc, char **argv)
     } else
         view = g_object_new(WEBKIT_TYPE_WEB_VIEW, "network-session", session, "website-policies", policies, NULL);
     g_signal_connect(view, "load-failed", G_CALLBACK(tolerant ? on_load_failed_tolerant : on_load_failed), NULL);
+    if (!no_debug_js)
+        g_signal_connect(view, "resource-load-started", G_CALLBACK(on_resource_load_started), NULL);
     if (fine) { /* replaces the view's settings object: everything else has to be applied to the result, after this */
         WebKitSettings *settings = webkit_settings_new();
         set_fine_damage(settings);
