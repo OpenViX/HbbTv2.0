@@ -28,12 +28,15 @@ from sys import maxsize
 
 from enigma import eActionMap, eConsoleAppContainer, ePoint, eSize, eTimer, getDesktop, iPlayableService, iServiceInformation
 from Components.ActionMap import ActionMap
+from Components.config import ConfigSelection, ConfigSubsection, ConfigText, ConfigYesNo, config, configfile
+from Components.Sources.StaticText import StaticText
 from Components.Pixmap import Pixmap
 from Plugins.Plugin import PluginDescriptor
 from Screens.ChoiceBox import ChoiceBox
 from Components.Label import Label
 from Screens.MessageBox import MessageBox
 from Screens.Screen import Screen
+from Screens.Setup import Setup
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 RUN = f"{BASE}/run_wpe.sh"
@@ -1172,87 +1175,271 @@ def sessionStart(reason, session=None, **kwargs):
 
 
 # --- settings ------------------------------------------------------------------------------------------------
-# (key in the conf file, title, [(value, text), ...], default). The first value listed is NOT necessarily the default.
-SETTINGS = [
-	("WPE_REDBUTTON", "Red button starts the HbbTV application", [("1", "on"), ("0", "off")], "1"),
-	("WPE_AUTOSTART", "Automatic HbbTV banner when zapping (autostart)", [("0", "off"), ("1", "on")], "0"),
-	("WPE_HIDPI", "Render quality", [("1.5", "sharp (1.5x)"), ("1.25", "balanced (1.25x)"), ("1.0", "fast (1.0x)")], "1.0"),
-	("WPE_FAST_ANIM", "Shorter animations", [("0", "off"), ("1", "on")], "1"),
-	("WPE_PERSIST", "Keep cache, cookies and storage", [("1", "yes"), ("0", "no")], "1"),
-	("WPE_DEBUG", "Debug log (slower)", [("0", "off"), ("1", "on")], "0"),
-	("WPE_LIMIT_REPEAT", "Limit key repeat (a feel, not a speed-up)", [("0", "off"), ("1", "on")], "1"),
+# One row per flag of /etc/enigma2/wpehbbtv.conf that run_wpe.sh reads:
+#   (key, title, [(value, text), ...] or None for a text field, default, help)
+# "default" is what run_wpe.sh / wpe_fb use when the key is absent from the conf: a value equal to it is not written, so the conf only holds what
+# was changed (and "Reset to defaults" empties it). An option with the value "" stands for "not set: leave it to WebKit / the driver".
+# Settings that are not in a group below are kept in the conf untouched.
+ON_OFF = [("0", "off"), ("1", "on")]
+
+
+def msOptions(*values):
+	return [(str(value), "%d ms" % value if value else "off") for value in values]
+
+
+SETTING_GROUPS = [
+	("Application", [
+		("WPE_REDBUTTON", "Red button starts the application", [("1", "on"), ("0", "off")], "1",
+			"The red button on a channel with an HbbTV application starts it (and gives it the red key)."),
+		("WPE_AUTOSTART", "Automatic banner when zapping", ON_OFF, "0",
+			"Start the AUTOSTART application of a channel by itself, on top of the live picture, a few seconds after zapping."),
+		("WPE_PERSIST", "Keep cache, cookies and storage", [("1", "yes"), ("0", "no")], "1",
+			"The HTTP cache (up to 75 MB), cookies and local storage of the applications survive between runs. Needs /media/hdd."),
+		("WPE_PERSIST_DIR", "Storage directory", None, "",
+			"Where they live. Empty = /media/hdd/.wpe-data. An absolute path of letters, digits and _ . / -"),
+		("WPE_TOLERANT", "Tolerant mode", ON_OFF, "0",
+			"Ignore TLS certificate errors, show no WebKit error page for a failed load, and reload a crashed page instead of quitting."),
+		("WPE_DEBUG", "Debug log (slower)", ON_OFF, "0",
+			"The page's console, media events, every network request and GStreamer output go to /tmp/wpe_fb.log."),
+	]),
+	("Rendering", [
+		("WPE_HIDPI", "Render quality", [("1.5", "sharp (1.5x)"), ("1.25", "balanced (1.25x)"), ("1.0", "fast (1.0x)")], "1.0",
+			"The read-back of a frame costs time in proportion to its pixels: 1.0 reacts about three times quicker than 1.5."),
+		("WPE_FAST_ANIM", "Shorter animations", [("1", "on"), ("0", "off")], "1",
+			"CSS transitions and animations last 1 ms and there is no smooth scrolling: fewer frames per key press."),
+		("WPE_SKIA_CPU", "Page painting", [("1", "CPU"), ("0", "GPU")], "1",
+			"CPU painting uses little GPU memory (no black tiles) and is only slightly slower. GPU painting keeps tiles as GPU textures."),
+		("WPE_HW_ACCEL", "Software compositing", [("", "off"), ("never", "on")], "",
+			"Composite the page in software: no GPU memory is used for page layers."),
+	]),
+	("GPU memory", [
+		("WPE_COVER_AREA", "Tile cover area", [("", "default (2)"), ("1", "1 (visible area only)"), ("1.5", "1.5"), ("2", "2"), ("3", "3"), ("4", "4")], "",
+			"Area kept in tiles as a multiple of the visible area, squared (the default 2 keeps four times the visible area). Lower = less GPU memory."),
+		("WPE_SKIA_CACHE_MB", "Skia GPU cache", [("", "default")] + [(str(v), "%d MB" % v) for v in (8, 16, 32, 64, 128, 256)], "",
+			"Limit of the Skia GPU resource cache."),
+		("WPE_TEXTURE_POOL_MB", "Unused tile texture pool", [("", "default")] + [(str(v), "%d MB" % v) for v in (16, 32, 64, 128, 256)], "",
+			"Above this size unused tile textures are released after 50 ms instead of 3 s."),
+		("WPE_TILE_SIZE", "Tile size (GPU painting)", [("", "default"), ("256x256", "256 x 256"), ("512x256", "512 x 256"), ("512x512", "512 x 512"), ("1024x256", "1024 x 256")], "",
+			"The GPU default is as wide as the viewport; smaller tiles allocate less memory per update."),
+		("WPE_SKIA_DDL", "Deferred display lists (GPU painting)", [("1", "on"), ("0", "off")], "1",
+			"Off: paint with Skia GPU worker threads into pooled textures instead (a different memory use)."),
+		("WPE_SKIA_GPU_THREADS", "GPU painting threads", [("", "default")] + [(str(v), str(v)) for v in (1, 2, 3, 4)], "",
+			"Painting threads when deferred display lists are off."),
+		("WEBKIT_DISABLE_GL_FENCE", "GL fence sync", [("", "automatic"), ("0", "use fences"), ("1", "disable fences")], "",
+			"Automatic: fences on Nexus boxes, off on others. Disable them when the driver crashes in glFlush() or has no fence sync."),
+	]),
+	("Output and keys", [
+		("WPE_LIMIT_REPEAT", "Limit key repeat", [("1", "on"), ("0", "off")], "1",
+			"Pass the remote's auto-repeat on at most once per delivered frame: a held key moves fewer steps (a matter of feel, not speed)."),
+		("WPE_NICE", "Process priority (nice)", [(str(v), str(v)) for v in (-20, -10, -5, 0, 5, 10)], "-20",
+			"Scheduling priority of wpe_fb and its web processes: -20 highest, 19 lowest."),
+		("WPE_EGL", "Output path", [("", "automatic"), ("1", "enigma2 EGL renderer"), ("0", "framebuffer")], "",
+			"Automatic: enigma2's EGL renderer when it listens for the page (Nexus boxes), else the framebuffer."),
+	]),
+	("Frame timing (EGL output)", [
+		("WPE_EGL_SETTLE_MS", "Settle time", msOptions(0, 30, 60, 100, 150, 250), "0",
+			"After a change, wait this long for the page to stop changing before showing the frame."),
+		("WPE_EGL_MAX_DELAY_MS", "Longest delay", msOptions(0, 100, 250, 500, 1000), "0",
+			"A frame is never held back longer than this by the settle time."),
+		("WPE_EGL_KEY_MS", "Key window", msOptions(0, 200, 400, 800), "400",
+			"Frames this soon after a key press are the page's answer to it and are shown at once."),
+		("WPE_EGL_HOLD_MS", "Hold solid areas", msOptions(0, 50, 100, 200, 400), "0",
+			"Delay solid areas of a frame to hide a flash (can show as a late flash after an animation)."),
+		("WPE_EGL_HOLD_CLEAR", "Hold cleared areas", ON_OFF, "0", "Apply the hold to cleared (transparent) areas too."),
+		("WPE_EGL_DIP_MS", "Dip time", msOptions(0, 150, 300, 600), "300", "Duration of the picture dip copy (see wpe_fb dip_copy)."),
+		("WPE_EGL_RESYNC_MS", "Resync time", msOptions(0, 100, 250, 500), "0",
+			"Re-read released buffers after this time to repair rows. Off by default: it can bring back older pixels."),
+		("WPE_EGL_PIG_FIRST_MS", "Picture-in-graphics: first", msOptions(1000, 2000, 3000, 5000), "3000",
+			"Wait before the first video rectangle appears in graphics (a loading animation must not flash the picture)."),
+		("WPE_EGL_PIG_SETTLE_MS", "Picture-in-graphics: change", msOptions(100, 300, 500, 1000), "300",
+			"Wait before a showing video rectangle moves or goes away."),
+		("WPE_EGL_NO_HOLE", "No transparent hole", ON_OFF, "0", "Do not cut a transparent hole for the video in the frame."),
+		("WPE_EGL_NO_TRIM", "No row trimming", ON_OFF, "0", "Copy whole damage rectangles instead of trimming unchanged rows."),
+		("WPE_EGL_DEBUG_RECTS", "Show damage rectangles", ON_OFF, "0", "Draw the copied rectangles into the frame (debugging)."),
+		("WPE_NO_NEXUS_JOIN", "Do not join Nexus", ON_OFF, "0", "Skip the NxClient join (debugging; the page cannot get an EGL display on Nexus boxes without it)."),
+	]),
 ]
+
+SETTINGS = [row for _, rows in SETTING_GROUPS for row in rows]
+
+
+def settingName(key):
+	return key.lower()
+
+
+def switchValues(options):
+	"""(value for off, value for on) of an on/off (yes/no) setting, shown as enigma2's graphical switch (ConfigYesNo); None for any other setting."""
+	if options is None or len(options) != 2:
+		return None
+	texts = dict((text, value) for value, text in options)
+	for off, on in (("off", "on"), ("no", "yes")):
+		if set(texts) == {off, on}:
+			return texts[off], texts[on]
+	return None
+
+
+def isSwitch(options):
+	return switchValues(options) is not None
+
+
+def isOptional(options):
+	"""A setting with a choice "off" (value 0) among others (a time that can be switched off): a switch, and the time when it is on."""
+	return options is not None and not isSwitch(options) and ("0", "off") in options
+
+
+def timeOptions(options):
+	return [option for option in options if option != ("0", "off")]
+
+
+def configOf(key, options, default):
+	"""The config element of a setting: config.plugins.wpehbbtv.<key>, stored in enigma2's settings like any plugin's."""
+	if options is None:
+		return ConfigText(default=default, fixed_size=False, visible_width=40)
+	if isSwitch(options):
+		return ConfigYesNo(default=default == switchValues(options)[1])
+	if isOptional(options):
+		choices = timeOptions(options)
+		return ConfigSelection(choices=choices, default=default if default != "0" else choices[0][0])
+	return ConfigSelection(choices=[(option or "-", text) for option, text in options], default=default or "-")  # (the empty option as "-": a key of "" is not safe in every enigma2)
+
+
+config.plugins.wpehbbtv = ConfigSubsection()
+for _key, _title, _options, _default, _help in SETTINGS:
+	setattr(config.plugins.wpehbbtv, settingName(_key), configOf(_key, _options, _default))
+	if isOptional(_options):  # the switch in front of the time
+		setattr(config.plugins.wpehbbtv, settingName(_key) + "_on", ConfigYesNo(default=_default != "0"))
+
+
+def settingElement(key):
+	return getattr(config.plugins.wpehbbtv, settingName(key))
+
+
+def onElement(key):
+	return getattr(config.plugins.wpehbbtv, settingName(key) + "_on")
+
+
+def setSetting(key, options, value):
+	"""Put a conf value into the config element(s) of a setting."""
+	try:
+		element = settingElement(key)
+		if isSwitch(options):
+			element.value = value == switchValues(options)[1]
+		elif isOptional(options):
+			onElement(key).value = value != "0"
+			if value != "0":
+				element.value = value
+		else:
+			element.value = value or "-" if options is not None else value
+	except Exception:
+		pass  # a value this setting does not offer: left as it was
+
+
+def loadConf():
+	"""Show the values of the conf file in the config (a key it does not have is at its default), as the saved state: nothing is "changed" until the user
+	changes it. Without a conf file the saved config stays."""
+	try:
+		with open(CONF) as f:
+			conf = dict(line.strip().partition("=")[::2] for line in f if "=" in line)
+	except OSError:
+		return
+	for key, title, options, default, help in SETTINGS:
+		setSetting(key, options, conf.get(key, default))
+		settingElement(key).save()
+		if isOptional(options):
+			onElement(key).save()
+
+
+loadConf()
+
+
+def valueOf(key, options):
+	value = settingElement(key).value
+	if isSwitch(options):
+		return switchValues(options)[1 if value else 0]
+	if isOptional(options):
+		return value if onElement(key).value else "0"
+	return "" if value == "-" else value.strip()
 
 
 def readSettings():
-	values = {key: default for key, _, _, default in SETTINGS}
-	try:
-		with open(CONF) as f:
-			for line in f:
-				key, _, value = line.strip().partition("=")
-				if key in values:
-					values[key] = value
-	except OSError:
-		pass
-	return values
+	"""{key: value} of every setting, as run_wpe.sh gets it ("" = not set)."""
+	return {row[0]: valueOf(row[0], row[2]) for row in SETTINGS}
 
 
 def persistDir():
-	try:
-		with open(CONF) as f:
-			for line in f:
-				key, _, value = line.strip().partition("=")
-				if key == "WPE_PERSIST_DIR" and value.startswith("/") and len(value) > 1:
-					return value
-	except OSError:
-		pass
-	return PERSIST_DIR
+	value = readSettings()["WPE_PERSIST_DIR"]
+	return value if value.startswith("/") and len(value) > 1 else PERSIST_DIR
 
 
-def writeSettings(values):
-	# keys this plugin does not know (e.g. WPE_PERSIST_DIR) are kept as they are
+def writeSettings():
+	"""Write /etc/enigma2/wpehbbtv.conf, which run_wpe.sh reads, from the config. Only what differs from the default is written. Keys this plugin does
+	not know (e.g. WEBKIT_* set by hand) are kept as they are."""
+	values = readSettings()
+	known = {row[0] for row in SETTINGS}
+	defaults = {row[0]: row[3] for row in SETTINGS}
 	extra = []
 	try:
 		with open(CONF) as f:
-			extra = [line.rstrip("\n") for line in f if line.partition("=")[0] not in values and line.strip()]
+			extra = [line.rstrip("\r\n") for line in f if line.partition("=")[0] not in known and line.strip()]
 	except OSError:
 		pass
 	try:
 		with open(CONF, "w") as f:
-			f.write("".join(f"{key}={value}\n" for key, value in values.items()))
+			f.write("".join(f"{key}={value}\n" for key, value in values.items() if value != defaults[key] and value != ""))
 			f.write("".join(line + "\n" for line in extra))
 		return True
 	except OSError:
 		return False
 
 
+class WPESettings(Setup):
+	"""The settings, a standard enigma2 Setup screen (like the plugins' own): LEFT/RIGHT change a value, OK edits a text, GREEN saves, RED/EXIT cancel
+	(asking only when something was changed), YELLOW resets to the defaults, BLUE deletes the stored data. The values are applied at the next start of
+	an application."""
+
+	def __init__(self, session):
+		loadConf()  # (the conf file may have been edited since the plugin was loaded)
+		Setup.__init__(self, session, None)
+		self.title = "WPE HbbTV settings"
+		self["key_yellow"] = StaticText("Defaults")
+		self["key_blue"] = StaticText("Delete stored data")
+		self["wpeActions"] = ActionMap(["ColorActions"], {"yellow": self.defaults, "blue": self.clear}, -1)
+		self.addSaveNotifier(self.saved)
+
+	def createSetup(self):
+		configlist = []
+		for number, (group, rows) in enumerate(SETTING_GROUPS):
+			if number:
+				configlist.append(("---",))
+			for key, title, options, default, help in rows:
+				if isOptional(options):
+					configlist.append((title, onElement(key), help))
+					if onElement(key).value:
+						configlist.append(("  Time", settingElement(key), help))
+				else:
+					configlist.append((title, settingElement(key), help))
+		self["config"].list = configlist
+
+	def saved(self):
+		if not writeSettings():
+			self.session.open(MessageBox, f"Could not write {CONF}", MessageBox.TYPE_ERROR)
+
+	def defaults(self):
+		self.session.openWithCallback(self.defaultsConfirmed, MessageBox, "Set every setting to its default?", MessageBox.TYPE_YESNO, default=False)
+
+	def defaultsConfirmed(self, yes):
+		if yes:
+			for key, title, options, default, help in SETTINGS:
+				setSetting(key, options, default)
+			self.createSetup()
+
+	def clear(self):
+		self.session.openWithCallback(lambda yes: clearStoredData(self.session) if yes else None, MessageBox,
+			f"Delete the stored cache, cookies and local storage of the HbbTV applications ({persistDir()})?", MessageBox.TYPE_YESNO, default=False)
+
+
 def settingsMenu(session, **kwargs):
-	values = readSettings()
-	choices = []
-	for key, title, options, default in SETTINGS:
-		text = dict(options).get(values[key], values[key])
-		choices.append((f"{title}: {text}", key))
-	choices.append(("Delete stored cache, cookies and storage", "clear"))
-
-	def chosen(choice):
-		if not choice:
-			return
-		key = choice[1]
-		if key == "clear":
-			session.openWithCallback(lambda yes: clearStoredData(session) if yes else settingsMenu(session), MessageBox,
-				f"Delete the stored cache, cookies and local storage of the HbbTV applications ({persistDir()})?", MessageBox.TYPE_YESNO)
-			return
-		for k, title, options, default in SETTINGS:
-			if k == key:  # the next value, round and round
-				order = [value for value, _ in options]
-				current = values[k] if values[k] in order else default
-				values[k] = order[(order.index(current) + 1) % len(order)]
-		if not writeSettings(values):
-			session.open(MessageBox, f"Could not write {CONF}", MessageBox.TYPE_ERROR)
-			return
-		settingsMenu(session)  # show the new state; EXIT leaves
-
-	session.openWithCallback(chosen, ChoiceBox, title="WPE HbbTV settings  (OK changes a value, applied at the next start)", list=choices)
+	session.open(WPESettings)
 
 
 def clearStoredData(session):
@@ -1272,6 +1459,6 @@ def Plugins(**kwargs):
 		where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=main),
 		PluginDescriptor(name="WPE HbbTV: channel app", description="Run the HbbTV application of the current channel (ORB engine, mock platform)",
 		where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=channelApp),
-		PluginDescriptor(name="WPE HbbTV: settings", description="Red button, autostart, render quality, animations, stored data",
+		PluginDescriptor(name="WPE HbbTV: settings", description="Red button, autostart, rendering, GPU memory, timing and stored data",
 		where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=settingsMenu),
 		PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionStart)]

@@ -55,7 +55,13 @@
       "Bash(grep -E '\\\\.\\(cpp|h\\)$')",
       "Bash(mkdir -p gp)",
       "Bash(tar -xf ../wk-src/wpewebkit-2.54.0.tar.xz --wildcards '*SkiaAcceleratedBufferPool.cpp' '*SkiaAcceleratedBufferPool.h' '*CoordinatedTileBuffer.cpp')",
-      "Bash(sed -i 's/| WPE_TILE_SIZE\\) eval/| WPE_TILE_SIZE | WEBKIT_DISABLE_GL_FENCE\\) eval/' run_wpe.sh)"
+      "Bash(sed -i 's/| WPE_TILE_SIZE\\) eval/| WPE_TILE_SIZE | WEBKIT_DISABLE_GL_FENCE\\) eval/' run_wpe.sh)",
+      "Bash(python -m py_compile plugin.py)",
+      "Bash(rm -rf __pycache__)",
+      "Bash(python -I \"C:/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/fix3.py\" plugin.py)",
+      "Bash(python -I \"C:/Users/dimit/AppData/Local/Temp/claude/e--Enigma2Dev-OpenViX-hbbtv2-0-HbbTv2-0/6d9a3815-a2a3-4791-81cb-5740a00f9472/scratchpad/fix4.py\" plugin.py)",
+      "Bash(sed -i 's/^\\\\t\\\\tself.skinName = \\\\[\"WPEHbbTVSettings\", \"Setup\"\\\\]/\\\\t\\\\tself.skinName = [\"WPEHbbTVSettings\", \"Setup\"]\\\\n\\\\t\\\\tloadConf\\(\\)  # \\(the conf file may have been edited since the plugin was loaded\\)/' plugin.py)",
+      "Bash(python -I __TRACKED_VAR__/splice2.py plugin.py __TRACKED_VAR__/region.py)"
     ],
     "additionalDirectories": [
       "E:\\Enigma2Dev\\OpenViX\\hbbtv2.0\\HbbTv2.0",
