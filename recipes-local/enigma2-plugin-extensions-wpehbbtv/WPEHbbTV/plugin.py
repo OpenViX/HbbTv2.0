@@ -1454,11 +1454,18 @@ def clearStoredData(session):
 		session.open(MessageBox, f"Could not delete {directory}: {e}", MessageBox.TYPE_ERROR)
 
 
+def menuHook(menuid, **kwargs):
+	"""Main menu -> Setup: the settings screen."""
+	if menuid == "setup":
+		return [("WPE HbbTV", settingsMenu, "wpehbbtv_settings", 50)]
+	return []
+
+
 def Plugins(**kwargs):
 	return [PluginDescriptor(name="WPE HbbTV Test", description="WPE WebKit HbbTV 2.0 experiment: test pages on top of enigma2",
 		where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=main),
 		PluginDescriptor(name="WPE HbbTV: channel app", description="Run the HbbTV application of the current channel (ORB engine, mock platform)",
 		where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=channelApp),
-		PluginDescriptor(name="WPE HbbTV: settings", description="Red button, autostart, rendering, GPU memory, timing and stored data",
-		where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=settingsMenu),
+		PluginDescriptor(name="WPE HbbTV", description="Red button, autostart, rendering, GPU memory, timing and stored data",
+		where=PluginDescriptor.WHERE_MENU, fnc=menuHook),
 		PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionStart)]
