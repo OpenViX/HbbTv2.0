@@ -78,6 +78,7 @@ python () {
         file://0019-PlatformDisplaySurfaceless-join-Nexus-before-the-first-EGL-call.patch \
         file://0020-GPU-memory-limits-tunable-at-runtime-cover-area-Skia-cache-texture-pool.patch \
         file://0021-Skia-GL-context-creation-failure-is-logged-and-no-longer-crashes-the-compositor.patch \
+        file://0022-Skia-resolve-glGetFloatv-through-epoxy-so-GrGLInterface-validate-passes-on-the-Broadcom-V3D-driver.patch \
     ')
 }
 # 0003-0006: vendor EGL (Broadcom V3D) without GBM/Mesa surfaceless: the default EGL display and the WPE platform fixes it needs.
@@ -126,6 +127,9 @@ python () {
 # 0021: Skia could not make a GPU context (GrDirectContexts::MakeGL null): the ThreadedCompositor dereferenced it (VU+ Ultimo 4K, WebProcess SIGSEGV after the
 #       Nexus join). Now the driver's GL strings are logged (stderr = /tmp/wpe_fb.log) and the compositor is invalidated instead of crashing.
 
+# 0022: why Skia refused the V3D and Mali drivers: GrGLInterface::validate() requires glGetFloatv, which the epoxy interface asked eglGetProcAddress() for
+#       (Broadcom's libEGL returns NULL for core functions). It is now taken from epoxy like the other core functions.
+
 # Vendor eglplatform.h falls back to X11 types unless BROADCOM_PLATFORM is set
 # (see the libepoxy bbappend).
 CFLAGS:append = " -DBROADCOM_PLATFORM"
@@ -140,7 +144,7 @@ CXXFLAGS:append = " -DBROADCOM_PLATFORM"
 CFLAGS:append = " -DENABLE_C_LOOP=0"
 CXXFLAGS:append = " -DENABLE_C_LOOP=0"
 
-# The build is reproducible as it stands: the tarball plus the recipe's own two patches plus the twenty-one above, in this order.
+# The build is reproducible as it stands: the tarball plus the recipe's own two patches plus the twenty-two above, in this order.
 #
 # Development mode (incremental rebuilds): OE wipes the build directory whenever SRC_URI changes, and every source fix would cost a
 # clean ~2h rebuild. Instead, build from a persistent, already-patched tree with externalsrc, in local.conf like the other packages:
@@ -211,4 +215,5 @@ PARALLEL_MAKE = "-j 6 -k 0"
 # join/register, so the vendor EGL stored an error code through an uninitialised pthread key into mimalloc's main heap. 0019 joins/registers first.
 # r15: patch 0020 (runtime GPU memory limits, off by default).
 # r16: patch 0021 (diagnostic + no crash when Skia refuses the GL driver).
-PKGR = "r16"
+# r17: patch 0022 (Skia gets a GPU context on the Broadcom V3D driver).
+PKGR = "r17"

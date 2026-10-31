@@ -1,0 +1,43 @@
+From: xcentaurix
+Subject: [PATCH] Skia: resolve glGetFloatv through the epoxy core functions, not eglGetProcAddress (GrGLContext::Make failed on the Broadcom V3D driver)
+
+Symptom (VU+ Ultimo 4K, Broadcom V3D-435, "OpenGL ES 2.0"): GrDirectContexts::MakeGL returns null although the GL interface is created and glGetError is 0, so
+Skia has no GPU context (see 0021: the web process used to crash, now the compositor is invalidated and nothing is painted).
+
+Cause: MakeGL -> GrGLGpu::Make -> GrGLContext::Make -> GrGLInterface::validate(). The GL version ("OpenGL ES 2.0") and the GLSL version ("OpenGL ES GLSL ES
+1.00") both parse, and validate() lists glGetFloatv among the functions that must exist whatever the GL version. The epoxy interface
+(GrGLMakeEpoxyEGLInterface.cpp) hands Skia the core functions listed in GR_GL_CORE_FUNCTIONS_EACH from epoxy itself and asks eglGetProcAddress() for every
+other name. glGetFloatv is the one required function missing from that list. The EGL spec only guarantees eglGetProcAddress() for extension functions
+(EGL_KHR_get_all_proc_addresses is what makes it return core ones): Mesa answers, Broadcom's libEGL returns NULL, fGetFloatv stays null and validate() fails.
+
+Fix: add glGetFloatv to the list, like its siblings glGetError / glGetIntegerv. No change on drivers whose eglGetProcAddress already answered.
+
+Same family, GL ES only: validate() also requires glInsertEventMarkerEXT / glPushGroupMarkerEXT / glPopGroupMarkerEXT whenever GL_EXT_debug_marker is
+advertised. The Broadcom V3D driver (VU+ Ultimo 4K) advertises it and may not export them. Skia's GL backend never calls them, so the ES requirement is dropped.
+
+---
+--- a/Source/ThirdParty/skia/src/gpu/ganesh/gl/GrGLCoreFunctions.h	2026-10-31 10:24:47.700602300 +0200
++++ b/Source/ThirdParty/skia/src/gpu/ganesh/gl/GrGLCoreFunctions.h	2026-10-31 10:25:37.496203700 +0200
+@@ -66,6 +66,7 @@
+     M(glGenerateMipmap) \
+     M(glGetBufferParameteriv) \
+     M(glGetError) \
++    M(glGetFloatv) \
+     M(glGetFramebufferAttachmentParameteriv) \
+     M(glGetIntegerv) \
+     M(glGetProgramInfoLog) \
+--- a/Source/ThirdParty/skia/src/gpu/ganesh/gl/GrGLInterfaceAutogen.cpp	2026-10-31 10:40:49.561743700 +0200
++++ b/Source/ThirdParty/skia/src/gpu/ganesh/gl/GrGLInterfaceAutogen.cpp	2026-10-31 10:40:49.563727700 +0200
+@@ -584,10 +584,8 @@
+         }
+     }
+ 
+-    if ((GR_IS_GR_GL(fStandard) && (
+-          fExtensions.has("GL_EXT_debug_marker"))) ||
+-       (GR_IS_GR_GL_ES(fStandard) && (
+-          fExtensions.has("GL_EXT_debug_marker")))) {
++    // (GL ES: not required. Skia's GL backend never calls the markers, and some ES drivers advertise GL_EXT_debug_marker without exporting the functions.)
++    if (GR_IS_GR_GL(fStandard) && fExtensions.has("GL_EXT_debug_marker")) {
+         if (!fFunctions.fInsertEventMarker ||
+             !fFunctions.fPopGroupMarker ||
+             !fFunctions.fPushGroupMarker) {
