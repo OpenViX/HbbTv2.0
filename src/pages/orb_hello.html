@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>orb hello</title>
+<style>
+  html, body { margin: 0; background: transparent; color: #fff; font: 22px sans-serif; }
+  #box { position: absolute; left: 30px; top: 30px; width: 1180px; background: rgba(0, 0, 70, 0.85); padding: 16px 22px; border: 3px solid #fff; }
+  h1 { margin: 0 0 8px 0; font-size: 30px; }
+  pre { margin: 0; white-space: pre-wrap; font: 20px monospace; }
+  .key { display: inline-block; width: 24px; height: 24px; margin-right: 8px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<object id="appmgr" type="application/oipfApplicationManager" style="position:absolute;left:0;top:0;width:0;height:0"></object>
+<object id="oipfcfg" type="application/oipfConfiguration" style="position:absolute;left:0;top:0;width:0;height:0"></object>
+<object id="oipfcap" type="application/oipfCapabilities" style="position:absolute;left:0;top:0;width:0;height:0"></object>
+<div id="box">
+  <h1>ORB / HbbTV on the DM900</h1>
+  <div><span class="key" style="background:#e00"></span><span class="key" style="background:#0b0"></span><span class="key" style="background:#ee0"></span><span class="key" style="background:#08f"></span> press the coloured keys, arrows, OK, digits</div>
+  <pre id="log"></pre>
+</div>
+<script>
+var lines = [];
+function log(s) {
+  lines.push(s);
+  if (lines.length > 22) lines.shift();
+  document.getElementById('log').textContent = lines.join('\n');
+  console.log('APP ' + s);
+}
+function step(name, fn) {
+  try { log(name + ': ' + fn()); } catch (e) { log(name + ': EXCEPTION ' + e); }
+}
+window.addEventListener('load', function () {
+  log('userAgent: ' + navigator.userAgent);
+  var app;
+  step('getOwnerApplication', function () {
+    app = document.getElementById('appmgr').getOwnerApplication(document);
+    return app ? 'ok' : 'null';
+  });
+  step('app.show()', function () { app.show(); return 'ok'; });
+  step('keyset.setValue', function () {
+    // red|green|yellow|blue|navigation|vcr|numeric
+    app.privateData.keyset.setValue(0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x20 | 0x100);
+    return '0x' + app.privateData.keyset.value.toString(16);
+  });
+  step('preferredUILanguage', function () { return document.getElementById('oipfcfg').configuration.preferredUILanguage; });
+  step('countryId', function () { return document.getElementById('oipfcfg').configuration.countryId; });
+  step('localSystem.modelName', function () { return document.getElementById('oipfcfg').localSystem.modelName; });
+  step('hasCapability(+DRM)', function () { return document.getElementById('oipfcap').hasCapability('+DRM'); });
+  step('xmlCapabilities', function () { return String(document.getElementById('oipfcap').xmlCapabilities).slice(0, 60) + '...'; });
+});
+document.addEventListener('keydown', function (e) {
+  log('keydown keyCode=' + e.keyCode);
+  document.title = 'key=' + e.keyCode;
+});
+</script>
+</body>
+</html>

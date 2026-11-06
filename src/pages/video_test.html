@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>vid=loading</title>
+<style>html,body{margin:0;background:transparent;color:#fff;font:20px monospace}
+video{position:absolute;left:40px;top:40px;width:640px;height:360px;background:#000}
+#s{position:absolute;left:40px;top:420px;white-space:pre}</style></head>
+<body>
+<video id="v" muted playsinline></video>
+<div id="s"></div>
+<script>
+var q = new URLSearchParams(location.search), src = q.get('src') || 'http://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4';
+var v = document.getElementById('v'), s = document.getElementById('s'), evs = [];
+['loadstart','loadedmetadata','loadeddata','canplay','playing','waiting','stalled','ended','error','seeked'].forEach(function (n) {
+  v.addEventListener(n, function () { evs.push(n); if (evs.length > 8) evs.shift(); });
+});
+v.src = src;
+v.play().catch(function (e) { evs.push('play():' + e.name); });
+function tick() {
+  var qy = v.getVideoPlaybackQuality ? v.getVideoPlaybackQuality() : {};
+  var line = 't=' + v.currentTime.toFixed(2) + ' rs=' + v.readyState + ' ns=' + v.networkState + ' ' + v.videoWidth + 'x' + v.videoHeight +
+    ' paused=' + v.paused + ' frames=' + qy.totalVideoFrames + ' dropped=' + qy.droppedVideoFrames + ' err=' + (v.error ? v.error.code + ':' + v.error.message : '-');
+  s.textContent = src + '\n' + line + '\nevents: ' + evs.join(' ');
+  document.title = 'vid=' + line;
+}
+setInterval(tick, 500);
+</script></body></html>
