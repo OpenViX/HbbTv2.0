@@ -106,7 +106,19 @@
       "Bash(node -e 'const ua=\"Mozilla/5.0 \\(X11; Linux\\) HbbTV/1.6.1 \\(+DRM;x;y;1;1;\\) LGE; HbbTV-Box; LaTivu_2.1.0_2026\";console.log\\(/LGE;.*LaTivu_2.1.0_2026/.test\\(ua\\), /CPAS 2.0.1;Samsung;/.test\\(ua\\)\\)')",
       "WebSearch",
       "Bash(python -c \"import ast,sys;ast.parse\\(open\\('plugin.py'\\).read\\(\\)\\)\")",
-      "Bash(python -c \"import ast;ast.parse\\(open\\('plugin.py'\\).read\\(\\)\\)\")"
+      "Bash(python -c \"import ast;ast.parse\\(open\\('plugin.py'\\).read\\(\\)\\)\")",
+      "Bash(curl -s -m 40 -o rb.js \"http://hbbtv.redbutton.de/service/js/redbutton-app-v16.9.0.js\")",
+      "Bash(grep -o \"Could not retrieve device information[^\\\\\"']\\\\{0,80\\\\}\" rb.js)",
+      "Bash(grep -o \"getHbbTVInformation.\\\\{0,700\\\\}\" rb.js)",
+      "Bash(grep -o \".\\\\{400\\\\}HbbTV\\\\\\\\\\\\\\\\/.\\\\{300\\\\}\" rb.js)",
+      "Bash(grep -o \"function isHbbTVEmulator.\\\\{0,500\\\\}\" rb.js)",
+      "Bash(grep -o \"function getBasicHbbTVInfo.\\\\{0,900\\\\}\" rb.js)",
+      "Bash(grep -o \"deviceArray=.\\\\{0,400\\\\}\" rb.js)",
+      "Bash(python3 -)",
+      "Bash(node run.js)",
+      "Bash(curl -s -m 30 \"https://opensource.apple.com/source/WebCore/WebCore-7611.3.10.0.1/platform/network/HTTPParsers.cpp.auto.html\" -o hp.html)",
+      "Bash(python3 -c \"import ast;ast.parse\\(open\\('WPEHbbTV/plugin.py'\\).read\\(\\)\\)\")",
+      "Bash(curl -s -m 40 -o ms.js \"https://static1.mediasetplay.mediaset.it/app/enabler/js/scripts-e10b2c7e9a.js\")"
     ],
     "additionalDirectories": [
       "E:\\Enigma2Dev\\OpenViX\\hbbtv2.0\\HbbTv2.0",

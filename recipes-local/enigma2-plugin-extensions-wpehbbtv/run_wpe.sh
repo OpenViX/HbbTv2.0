@@ -32,13 +32,16 @@ ORB=${WPE_ORB_DIR:-/usr/lib/orb}
 #                   of feel, it does not make the page settle sooner (docs/phase1-results.txt); default 0
 CONF=/etc/enigma2/wpehbbtv.conf 
 if [ -f "$CONF" ]; then
-	while IFS='=' read -r k v; do
+	CR=$(printf '\r')
+	while IFS='=' read -r k v || [ -n "$k" ]; do # (|| [ -n "$k" ]: a last line without a newline at the end is a line too)
+		v=${v%"$CR"} # a conf file with DOS line ends: the CR would end up in the value (WebKit refuses a WPE_UA that has one)
 		case $k in
 		WPE_HIDPI | WPE_FAST_ANIM | WPE_PERSIST | WPE_PERSIST_DIR | WPE_DEBUG | WPE_LIMIT_REPEAT | WPE_EGL | WPE_EGL_SETTLE_MS | WPE_EGL_MAX_DELAY_MS | WPE_EGL_KEY_MS | WPE_EGL_HOLD_MS | WPE_EGL_HOLD_CLEAR | WPE_NO_NEXUS_JOIN | WPE_EGL_RESYNC_MS | WPE_EGL_NO_HOLE | WPE_EGL_DEBUG_RECTS | WPE_NICE | WPE_TOLERANT | WPE_EGL_PIG_SETTLE_MS | WPE_EGL_PIG_FIRST_MS | WPE_EGL_DIP_MS | WPE_HW_ACCEL | WPE_EGL_NO_TRIM | WPE_COVER_AREA | WPE_SKIA_CACHE_MB | WPE_TEXTURE_POOL_MB | WPE_SKIA_CPU | WPE_SKIA_DDL | WPE_SKIA_GPU_THREADS | WPE_TILE_SIZE | WPE_UA | WEBKIT_DISABLE_GL_FENCE) eval "[ -n \"\${$k}\" ] || $k=\$v" ;;
 		esac
 	done <"$CONF"
 fi
 export WPE_UA WPE_HW_ACCEL WPE_EGL_NO_TRIM WPE_EGL_DIP_MS WPE_EGL_PIG_SETTLE_MS WPE_EGL_PIG_FIRST_MS WPE_EGL_DEBUG_RECTS WPE_EGL_NO_HOLE WPE_NO_NEXUS_JOIN WPE_EGL_RESYNC_MS WPE_EGL_SETTLE_MS WPE_EGL_MAX_DELAY_MS WPE_EGL_KEY_MS WPE_EGL_HOLD_MS WPE_EGL_HOLD_CLEAR # read by wpe_fb --egl-sink (empty = its defaults)
+echo "run_wpe: conf $CONF$([ -f "$CONF" ] || echo ' (not found)'), WPE_UA='$WPE_UA'" >&2 # first lines of the log: what the user agent setting came to
 # defaults for what the conf file (or the environment) leaves unset
 : "${WPE_EGL_SETTLE_MS:=0}" "${WPE_EGL_MAX_DELAY_MS:=0}" "${WPE_EGL_HOLD_MS:=0}" "${WPE_EGL_HOLD_CLEAR:=0}" "${WPE_EGL_KEY_MS:=400}" "${WPE_EGL_NO_HOLE:=0}" "${WPE_NICE:=-20}"
 : "${WPE_EGL_PIG_FIRST_MS:=3000}" "${WPE_EGL_DIP_MS:=300}" "${WPE_SKIA_CPU:=0}"

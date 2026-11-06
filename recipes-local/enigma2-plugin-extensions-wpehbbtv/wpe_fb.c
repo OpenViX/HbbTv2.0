@@ -3110,17 +3110,30 @@ int main(int argc, char **argv)
         {
             /* HbbTV servers sniff the user agent for the "HbbTV/x.y.z (...)" token the engine provides */
             WebKitSettings *settings = webkit_web_view_get_settings(view);
-            const char *ua_conf = g_getenv("WPE_UA"); /* the user agent setting: appended after the HbbTV token, or a whole user agent ("Mozilla/...") */
+            /* the user agent setting: appended after the HbbTV token, or a whole user agent ("Mozilla/..."). WebKit refuses a user agent that is not a valid
+             * header value (a stray CR from a conf file with DOS line ends, leading/trailing blanks, non-ASCII) and keeps its own, without the HbbTV token:
+             * so only printable ASCII goes in, trimmed. */
+            char *ua_conf = NULL;
+            if (g_getenv("WPE_UA")) {
+                GString *clean = g_string_new(NULL);
+                for (const char *c = g_getenv("WPE_UA"); *c; c++)
+                    if ((unsigned char)*c >= 0x20 && (unsigned char)*c < 0x7f)
+                        g_string_append_c(clean, *c);
+                ua_conf = g_strstrip(g_string_free(clean, FALSE));
+            }
             char *ua;
             if (ua_conf && g_str_has_prefix(ua_conf, "Mozilla/"))
                 ua = g_strdup(ua_conf);
             else if (ua_conf && *ua_conf)
-                ua = g_strdup_printf("%s %s %s", webkit_settings_get_user_agent(settings), orb_host_user_agent(), ua_conf);
+                /* WebKit's check wants "product *( RWS ( product / comment ) )": text with ';' or blanks is only valid inside a comment, in parentheses
+                 * (without them the whole user agent is refused: "isValidUserAgentHeaderValue" assertion, and the page sees no HbbTV token) */
+                ua = g_strdup_printf(*ua_conf == '(' ? "%s %s %s" : "%s %s (%s)", webkit_settings_get_user_agent(settings), orb_host_user_agent(), ua_conf);
             else
                 ua = g_strdup_printf("%s %s", webkit_settings_get_user_agent(settings), orb_host_user_agent());
             webkit_settings_set_user_agent(settings, ua);
             fprintf(stderr, "orb: user agent: %s\n", ua);
             g_free(ua);
+            g_free(ua_conf);
         }
         if (page) /* a start application given on the command line */
             g_thread_unref(g_thread_new("orb-launch", orb_launch_thread, g_strdup(page)));

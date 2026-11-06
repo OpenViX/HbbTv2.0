@@ -1382,7 +1382,7 @@ SETTING_GROUPS = [
 		("WPE_TOLERANT", "Tolerant mode", ON_OFF, "1",
 			"Ignore TLS certificate errors, show no WebKit error page for a failed load, and reload a crashed page instead of quitting."),
 		("WPE_UA", "User agent", None, "",
-			"Text added to the user agent after the HbbTV token, for a broadcaster that only serves listed TV models (Mediaset: LGE; HbbTV-Box; LaTivu_2.1.0_2026). Starting with Mozilla/ it replaces the whole user agent. Empty = unchanged."),
+			"Text added to the user agent after the HbbTV token, for a broadcaster that only serves listed TV models (Mediaset: LGE; HbbTV-Box; LaTivu_2.1.0_2026). It is put in parentheses after the HbbTV token (WebKit refuses a semicolon outside them). Starting with Mozilla/ it replaces the whole user agent, which must then be valid itself and keep an HbbTV/x.y (...;vendor;model;...) token. Empty = unchanged."),
 		("WPE_DEBUG", "Debug log (slower)", ON_OFF, "0",
 			"The page's console, media events, every network request and GStreamer output go to /tmp/wpe_fb.log."),
 	]),
