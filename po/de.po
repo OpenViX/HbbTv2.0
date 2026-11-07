@@ -20,146 +20,168 @@ msgstr ""
 #: ../src/plugin.py:1404 ../src/plugin.py:1406
 #, python-format
 msgid "%d MB"
-msgstr ""
+msgstr "%d MB"
 
 #: ../src/plugin.py:1371
 #, python-format
 msgid "%d ms"
-msgstr ""
+msgstr "%d ms"
 
 #: ../src/plugin.py:390 ../src/plugin.py:724
 #, python-format
 msgid "%s not found"
-msgstr ""
+msgstr "%s nicht gefunden"
 
 #: ../src/plugin.py:1402
 msgid "1 (visible area only)"
-msgstr ""
+msgstr "1 (nur sichtbarer Bereich)"
 
 #: ../src/plugin.py:1402
 msgid "1.5"
-msgstr ""
+msgstr "1,5"
 
 #: ../src/plugin.py:1408
 msgid "1024 x 256"
-msgstr ""
+msgstr "1024 x 256"
 
 #: ../src/plugin.py:1402
 msgid "2 (WebKit default)"
-msgstr ""
+msgstr "2 (WebKit-Standard)"
 
 #: ../src/plugin.py:1408
 msgid "256 x 256"
-msgstr ""
+msgstr "256 x 256"
 
 #: ../src/plugin.py:1402
 msgid "3"
-msgstr ""
+msgstr "3"
 
 #: ../src/plugin.py:1402
 msgid "4"
-msgstr ""
+msgstr "4"
 
 #: ../src/plugin.py:1408
 msgid "512 x 256"
-msgstr ""
+msgstr "512 x 256"
 
 #: ../src/plugin.py:1408
 msgid "512 x 512"
-msgstr ""
+msgstr "512 x 512"
 
 #: ../src/plugin.py:1429
 msgid "A frame is never held back longer than this by the settle time."
 msgstr ""
+"Ein Bild wird durch die Beruhigungszeit nie länger als dies zurückgehalten."
 
 #: ../src/plugin.py:1407
 msgid ""
 "Above this size unused tile textures are released after 50 ms instead of 3 s."
 msgstr ""
+"Oberhalb dieser Größe werden ungenutzte Kachel-Texturen nach 50 ms statt "
+"nach 3 s freigegeben."
 
 #: ../src/plugin.py:1427
 msgid ""
 "After a change, wait this long for the page to stop changing before showing "
 "the frame."
 msgstr ""
+"Nach einer Änderung so lange warten, bis sich die Seite nicht mehr ändert, "
+"bevor das Bild angezeigt wird."
 
 #: ../src/plugin.py:1434
 msgid "Apply the hold to cleared (transparent) areas too."
-msgstr ""
+msgstr "Das Zurückhalten auch auf gelöschte (transparente) Bereiche anwenden."
 
 #: ../src/plugin.py:1403
 msgid ""
 "Area kept in tiles as a multiple of the visible area, squared (WebKit's own "
 "2 keeps four times the visible area). Lower = less GPU memory."
 msgstr ""
+"In Kacheln vorgehaltener Bereich als Vielfaches des sichtbaren Bereichs, "
+"quadriert (WebKits eigener Wert 2 hält das Vierfache des sichtbaren Bereichs "
+"vor). Niedriger = weniger GPU-Speicher."
 
 #: ../src/plugin.py:1378
 msgid "Automatic banner when zapping"
-msgstr ""
+msgstr "Automatisches Banner beim Umschalten"
 
 #: ../src/plugin.py:1423
 msgid ""
 "Automatic: enigma2's EGL renderer when it listens for the page (Nexus "
 "boxes), else the framebuffer."
 msgstr ""
+"Automatisch: der EGL-Renderer von Enigma2, wenn er auf die Seite wartet "
+"(Nexus-Boxen), sonst der Framebuffer."
 
 #: ../src/plugin.py:1415
 msgid ""
 "Automatic: fences on Nexus boxes, off on others. Disable them when the "
 "driver crashes in glFlush() or has no fence sync."
 msgstr ""
+"Automatisch: Fences auf Nexus-Boxen, auf anderen aus. Abschalten, wenn der "
+"Treiber in glFlush() abstürzt oder keine Fence-Synchronisation hat."
 
 #: ../src/plugin.py:1396
 msgid "CPU"
-msgstr ""
+msgstr "CPU"
 
 #: ../src/plugin.py:1397
 msgid ""
 "CPU painting uses little GPU memory (no black tiles) and is only slightly "
 "slower. GPU painting keeps tiles as GPU textures."
 msgstr ""
+"Zeichnen per CPU braucht wenig GPU-Speicher (keine schwarzen Kacheln) und "
+"ist nur geringfügig langsamer. Zeichnen per GPU hält Kacheln als GPU-"
+"Texturen vor."
 
 #: ../src/plugin.py:1395
 msgid ""
 "CSS transitions and animations last 1 ms and there is no smooth scrolling: "
 "fewer frames per key press."
 msgstr ""
+"CSS-Übergänge und -Animationen dauern 1 ms und es gibt kein weiches "
+"Scrollen: weniger Bilder pro Tastendruck."
 
 #: ../src/plugin.py:1399
 msgid "Composite the page in software: no GPU memory is used for page layers."
 msgstr ""
+"Die Seite per Software zusammensetzen: für Seitenebenen wird kein GPU-"
+"Speicher verwendet."
 
 #: ../src/plugin.py:1443
 msgid "Copy whole damage rectangles instead of trimming unchanged rows."
 msgstr ""
+"Ganze geänderte Rechtecke kopieren, statt unveränderte Zeilen abzuschneiden."
 
 #: ../src/plugin.py:1640
 #, python-format
 msgid "Could not delete %s: %s"
-msgstr ""
+msgstr "%s konnte nicht gelöscht werden: %s"
 
 #: ../src/plugin.py:1611
 #, python-format
 msgid "Could not write %s"
-msgstr ""
+msgstr "%s konnte nicht geschrieben werden"
 
 #: ../src/plugin.py:1388
 msgid "Debug log (slower)"
-msgstr ""
+msgstr "Debug-Protokoll (langsamer)"
 
 #: ../src/plugin.py:1410
 msgid "Deferred display lists (GPU painting)"
-msgstr ""
+msgstr "Zurückgestellte Anzeigelisten (GPU-Zeichnen)"
 
 #: ../src/plugin.py:1433
 msgid ""
 "Delay solid areas of a frame to hide a flash (can show as a late flash after "
 "an animation)."
 msgstr ""
+"Einfarbige Flächen eines Bildes verzögern, um ein Aufblitzen zu verbergen "
+"(kann sich als spätes Aufblitzen nach einer Animation zeigen)."
 
 #: ../src/plugin.py:1591
 msgid "Delete stored data"
-msgstr ""
+msgstr "Gespeicherte Daten löschen"
 
 #: ../src/plugin.py:1624
 #, python-format
@@ -167,73 +189,77 @@ msgid ""
 "Delete the stored cache, cookies and local storage of the HbbTV applications "
 "(%s)?"
 msgstr ""
+"Den gespeicherten Cache, die Cookies und den lokalen Speicher der HbbTV-"
+"Anwendungen löschen (%s)?"
 
 #: ../src/plugin.py:1435
 msgid "Dip time"
-msgstr ""
+msgstr "Dip-Zeit"
 
 #: ../src/plugin.py:1442
 msgid "Do not cut a transparent hole for the video in the frame."
-msgstr ""
+msgstr "Kein transparentes Loch für das Video in das Bild schneiden."
 
 #: ../src/plugin.py:1445
 msgid "Do not join Nexus"
-msgstr ""
+msgstr "Nexus nicht hinzunehmen"
 
 #: ../src/plugin.py:1444
 msgid "Draw the copied rectangles into the frame (debugging)."
-msgstr ""
+msgstr "Die kopierten Rechtecke in das Bild zeichnen (Fehlersuche)."
 
 #: ../src/plugin.py:1435
 msgid "Duration of the picture dip copy (see wpe_fb dip_copy)."
-msgstr ""
+msgstr "Dauer der Bild-Dip-Kopie (siehe wpe_fb dip_copy)."
 
 #: ../src/plugin.py:1431
 msgid ""
 "Frames this soon after a key press are the page's answer to it and are shown "
 "at once."
 msgstr ""
+"Bilder so kurz nach einem Tastendruck sind die Antwort der Seite darauf und "
+"werden sofort angezeigt."
 
 #: ../src/plugin.py:1414
 msgid "GL fence sync"
-msgstr ""
+msgstr "GL-Fence-Synchronisation"
 
 #: ../src/plugin.py:1396
 msgid "GPU"
-msgstr ""
+msgstr "GPU"
 
 #: ../src/plugin.py:1412
 msgid "GPU painting threads"
-msgstr ""
+msgstr "Threads für GPU-Zeichnen"
 
 #: ../src/plugin.py:1646 ../src/plugin.py:1663
 msgid "HbbTV 2.0"
-msgstr ""
+msgstr "HbbTV 2.0"
 
 #: ../src/plugin.py:1657
 msgid "HbbTV 2.0 Test"
-msgstr ""
+msgstr "HbbTV 2.0 Test"
 
 #: ../src/plugin.py:1589
 msgid "HbbTV 2.0 settings"
-msgstr ""
+msgstr "HbbTV-2.0-Einstellungen"
 
 #: ../src/plugin.py:731
 msgid "HbbTV 2.0 test page  (EXIT closes the page)"
-msgstr ""
+msgstr "HbbTV-2.0-Testseite  (EXIT schließt die Seite)"
 
 #: ../src/plugin.py:1659
 msgid "HbbTV 2.0: channel app"
-msgstr ""
+msgstr "HbbTV 2.0: Sender-App"
 
 #: ../src/plugin.py:1661
 msgid "HbbTV 2.0: red button"
-msgstr ""
+msgstr "HbbTV 2.0: Rote Taste"
 
 #: ../src/plugin.py:1056
 #, python-format
 msgid "HbbTV applications of %s  (EXIT closes)"
-msgstr ""
+msgstr "HbbTV-Anwendungen von %s  (EXIT schließt)"
 
 #: ../src/plugin.py:718
 #, python-format
@@ -243,183 +269,209 @@ msgid ""
 "It needs EGL %d.%d and OpenGL ES %d.%d or newer.\n"
 "enigma2 reports: EGL %s, OpenGL ES %s."
 msgstr ""
+"HbbTV wird auf diesem System nicht unterstützt.\n"
+"\n"
+"Es benötigt EGL %d.%d und OpenGL ES %d.%d oder neuer.\n"
+"enigma2 meldet: EGL %s, OpenGL ES %s."
 
 #: ../src/plugin.py:1434
 msgid "Hold cleared areas"
-msgstr ""
+msgstr "Gelöschte Bereiche zurückhalten"
 
 #: ../src/plugin.py:1432
 msgid "Hold solid areas"
-msgstr ""
+msgstr "Einfarbige Bereiche zurückhalten"
 
 #: ../src/plugin.py:1385
 msgid ""
 "Ignore TLS certificate errors, show no WebKit error page for a failed load, "
 "and reload a crashed page instead of quitting."
 msgstr ""
+"TLS-Zertifikatfehler ignorieren, bei einem fehlgeschlagenen Laden keine "
+"WebKit-Fehlerseite anzeigen und eine abgestürzte Seite neu laden, statt zu "
+"beenden."
 
 #: ../src/plugin.py:1380
 msgid "Keep cache, cookies and storage"
-msgstr ""
+msgstr "Cache, Cookies und Speicher behalten"
 
 #: ../src/plugin.py:1430
 msgid "Key window"
-msgstr ""
+msgstr "Tastenfenster"
 
 #: ../src/plugin.py:1418
 msgid "Limit key repeat"
-msgstr ""
+msgstr "Tastenwiederholung begrenzen"
 
 #: ../src/plugin.py:1405
 msgid "Limit of the Skia GPU resource cache."
-msgstr ""
+msgstr "Grenze des Skia-GPU-Ressourcen-Caches."
 
 #: ../src/plugin.py:356
 msgid "Loading HbbTV ..."
-msgstr ""
+msgstr "HbbTV wird geladen ..."
 
 #: ../src/plugin.py:1028
 msgid "Loading the list of HbbTV applications..."
-msgstr ""
+msgstr "Die Liste der HbbTV-Anwendungen wird geladen..."
 
 #: ../src/plugin.py:1428
 msgid "Longest delay"
-msgstr ""
+msgstr "Längste Verzögerung"
 
 #: ../src/plugin.py:728
 #, python-format
 msgid "No .html pages in %s"
-msgstr ""
+msgstr "Keine .html-Seiten in %s"
 
 #: ../src/plugin.py:1443
 msgid "No row trimming"
-msgstr ""
+msgstr "Kein Zeilenabschneiden"
 
 #: ../src/plugin.py:1442
 msgid "No transparent hole"
-msgstr ""
+msgstr "Kein transparentes Loch"
 
 #: ../src/plugin.py:1411
 msgid ""
 "Off: paint with Skia GPU worker threads into pooled textures instead (a "
 "different memory use)."
 msgstr ""
+"Aus: stattdessen mit Skia-GPU-Worker-Threads in gepoolte Texturen zeichnen "
+"(anderer Speicherverbrauch)."
 
 #: ../src/plugin.py:1422
 msgid "Output path"
-msgstr ""
+msgstr "Ausgabepfad"
 
 #: ../src/plugin.py:1396
 msgid "Page painting"
-msgstr ""
+msgstr "Seitenzeichnen"
 
 #: ../src/plugin.py:1413
 msgid "Painting threads when deferred display lists are off."
-msgstr ""
+msgstr "Zeichen-Threads, wenn zurückgestellte Anzeigelisten aus sind."
 
 #: ../src/plugin.py:1419
 msgid ""
 "Pass the remote's auto-repeat on at most once per delivered frame: a held "
 "key moves fewer steps (a matter of feel, not speed)."
 msgstr ""
+"Die Auto-Wiederholung der Fernbedienung höchstens einmal pro geliefertem "
+"Bild weitergeben: Eine gehaltene Taste bewegt weniger Schritte (eine Frage "
+"des Gefühls, nicht der Geschwindigkeit)."
 
 #: ../src/plugin.py:1440
 msgid "Picture-in-graphics: change"
-msgstr ""
+msgstr "Bild-in-Grafik: Änderung"
 
 #: ../src/plugin.py:1438
 msgid "Picture-in-graphics: first"
-msgstr ""
+msgstr "Bild-in-Grafik: erstes"
 
 #: ../src/plugin.py:1420
 msgid "Process priority (nice)"
-msgstr ""
+msgstr "Prozesspriorität (nice)"
 
 #: ../src/plugin.py:1437
 msgid ""
 "Re-read released buffers after this time to repair rows. Off by default: it "
 "can bring back older pixels."
 msgstr ""
+"Freigegebene Puffer nach dieser Zeit erneut lesen, um Zeilen zu reparieren. "
+"Standardmäßig aus: Es kann ältere Pixel zurückbringen."
 
 #: ../src/plugin.py:1376
 msgid "Red button starts the application"
-msgstr ""
+msgstr "Rote Taste startet die Anwendung"
 
 #: ../src/plugin.py:1663
 msgid "Red button, autostart, rendering, GPU memory, timing and stored data"
 msgstr ""
+"Rote Taste, Autostart, Rendering, GPU-Speicher, Zeitverhalten und "
+"gespeicherte Daten"
 
 #: ../src/plugin.py:1392
 msgid "Render quality"
-msgstr ""
+msgstr "Renderqualität"
 
 #: ../src/plugin.py:1590
 msgid "Restore defaults"
-msgstr ""
+msgstr "Standardwerte wiederherstellen"
 
 #: ../src/plugin.py:1436
 msgid "Resync time"
-msgstr ""
+msgstr "Resync-Zeit"
 
 #: ../src/plugin.py:1659
 msgid ""
 "Run the HbbTV application of the current channel (ORB engine, mock platform)"
 msgstr ""
+"Die HbbTV-Anwendung des aktuellen Senders ausführen (ORB-Engine, Mock-"
+"Plattform)"
 
 #: ../src/plugin.py:1421
 msgid ""
 "Scheduling priority of wpe_fb and its web processes: -20 highest, 19 lowest."
 msgstr ""
+"Scheduling-Priorität von wpe_fb und seinen Webprozessen: -20 am höchsten, 19 "
+"am niedrigsten."
 
 #: ../src/plugin.py:1614
 msgid "Set every setting to its default?"
-msgstr ""
+msgstr "Jede Einstellung auf den Standardwert setzen?"
 
 #: ../src/plugin.py:1426
 msgid "Settle time"
-msgstr ""
+msgstr "Beruhigungszeit"
 
 #: ../src/plugin.py:1394
 msgid "Shorter animations"
-msgstr ""
+msgstr "Kürzere Animationen"
 
 #: ../src/plugin.py:1444
 msgid "Show damage rectangles"
-msgstr ""
+msgstr "Geänderte Rechtecke anzeigen"
 
 #: ../src/plugin.py:1404
 msgid "Skia GPU cache"
-msgstr ""
+msgstr "Skia-GPU-Cache"
 
 #: ../src/plugin.py:1445
 msgid ""
 "Skip the NxClient join (debugging; the page cannot get an EGL display on "
 "Nexus boxes without it)."
 msgstr ""
+"Den NxClient-Join überspringen (Fehlersuche; ohne ihn bekommt die Seite auf "
+"Nexus-Boxen kein EGL-Display)."
 
 #: ../src/plugin.py:1398
 msgid "Software compositing"
-msgstr ""
+msgstr "Software-Compositing"
 
 #: ../src/plugin.py:1379
 msgid ""
 "Start the AUTOSTART application of a channel by itself, on top of the live "
 "picture, a few seconds after zapping."
 msgstr ""
+"Die AUTOSTART-Anwendung eines Senders von selbst starten, über dem Live-"
+"Bild, einige Sekunden nach dem Umschalten."
 
 #: ../src/plugin.py:1661
 msgid ""
 "Start the HbbTV application of the current channel as the red button does "
 "(for Button Setup)"
 msgstr ""
+"Die HbbTV-Anwendung des aktuellen Senders so starten, wie es die rote Taste "
+"tut (für die Tasten-Einstellung)"
 
 #: ../src/plugin.py:1382
 msgid "Storage directory"
-msgstr ""
+msgstr "Speicherverzeichnis"
 
 #: ../src/plugin.py:1636
 msgid "Stored data deleted."
-msgstr ""
+msgstr "Gespeicherte Daten gelöscht."
 
 #: ../src/plugin.py:1387
 msgid ""
@@ -430,12 +482,21 @@ msgid ""
 "which must then be valid itself and keep an HbbTV/x.y (...;vendor;model;...) "
 "token. Empty = unchanged."
 msgstr ""
+"Text, der nach dem HbbTV-Token an den User-Agent angehängt wird, für einen "
+"Sender, der nur aufgelistete Fernsehmodelle bedient (Mediaset: LGE; HbbTV-"
+"Box; LaTivu_2.1.0_2026). Er wird in Klammern hinter den HbbTV-Token gesetzt "
+"(WebKit lehnt ein Semikolon außerhalb davon ab). Beginnt er mit Mozilla/, "
+"ersetzt er den gesamten User-Agent, der dann selbst gültig sein und einen "
+"HbbTV/x.y-(...;Hersteller;Modell;...)-Token enthalten muss. Leer = "
+"unverändert."
 
 #: ../src/plugin.py:1409
 msgid ""
 "The GPU default is as wide as the viewport; smaller tiles allocate less "
 "memory per update."
 msgstr ""
+"Der GPU-Standard ist so breit wie der Viewport; kleinere Kacheln belegen pro "
+"Aktualisierung weniger Speicher."
 
 #: ../src/plugin.py:1381
 msgid ""
@@ -443,70 +504,82 @@ msgid ""
 "survive between runs. Without a disk or USB stick they are kept in /tmp/wpe-"
 "data and lost at reboot."
 msgstr ""
+"Der HTTP-Cache (bis zu 75 MB), die Cookies und der lokale Speicher der "
+"Anwendungen bleiben zwischen den Läufen erhalten. Ohne Festplatte oder USB-"
+"Stick werden sie in /tmp/wpe-data gehalten und gehen beim Neustart verloren."
 
 #: ../src/plugin.py:1072
 msgid "The current channel does not signal an HbbTV application (no AIT)."
-msgstr ""
+msgstr "Der aktuelle Sender signalisiert keine HbbTV-Anwendung (kein AIT)."
 
 #: ../src/plugin.py:1389
 msgid ""
 "The page's console, media events, every network request and GStreamer output "
 "go to /tmp/wpe_fb.log."
 msgstr ""
+"Die Konsole der Seite, Medienereignisse, jede Netzwerkanfrage und die "
+"GStreamer-Ausgabe gehen nach /tmp/wpe_fb.log."
 
 #: ../src/plugin.py:1393
 msgid ""
 "The read-back of a frame costs time in proportion to its pixels: 1.0 reacts "
 "about three times quicker than 1.5."
 msgstr ""
+"Das Zurücklesen eines Bildes kostet Zeit im Verhältnis zu seinen Pixeln: 1,0 "
+"reagiert etwa dreimal schneller als 1,5."
 
 #: ../src/plugin.py:1377
 msgid ""
 "The red button on a channel with an HbbTV application starts it (and gives "
 "it the red key)."
 msgstr ""
+"Die rote Taste startet auf einem Sender mit HbbTV-Anwendung diese (und gibt "
+"ihr die rote Taste)."
 
 #: ../src/plugin.py:1638
 msgid "There is nothing stored."
-msgstr ""
+msgstr "Es ist nichts gespeichert."
 
 #: ../src/plugin.py:1402
 msgid "Tile cover area"
-msgstr ""
+msgstr "Kachel-Abdeckungsbereich"
 
 #: ../src/plugin.py:1408
 msgid "Tile size (GPU painting)"
-msgstr ""
+msgstr "Kachelgröße (GPU-Zeichnen)"
 
 #: ../src/plugin.py:1604
 msgid "Time"
-msgstr ""
+msgstr "Zeit"
 
 #: ../src/plugin.py:1384
 msgid "Tolerant mode"
-msgstr ""
+msgstr "Toleranter Modus"
 
 #: ../src/plugin.py:1406
 msgid "Unused tile texture pool"
-msgstr ""
+msgstr "Pool ungenutzter Kachel-Texturen"
 
 #: ../src/plugin.py:1386
 msgid "User agent"
-msgstr ""
+msgstr "User-Agent"
 
 #: ../src/plugin.py:1657
 msgid "WPE WebKit HbbTV 2.0 experiment: test pages on top of enigma2"
-msgstr ""
+msgstr "WPE-WebKit-HbbTV-2.0-Experiment: Testseiten über enigma2"
 
 #: ../src/plugin.py:1441
 msgid "Wait before a showing video rectangle moves or goes away."
 msgstr ""
+"Warten, bevor sich ein angezeigtes Videorechteck bewegt oder verschwindet."
 
 #: ../src/plugin.py:1439
 msgid ""
 "Wait before the first video rectangle appears in graphics (a loading "
 "animation must not flash the picture)."
 msgstr ""
+"Warten, bevor das erste Videorechteck in der Grafik erscheint (eine "
+"Ladeanimation darf das Bild nicht aufblitzen lassen)."
 
 #: ../src/plugin.py:1383
 msgid ""
@@ -514,54 +587,57 @@ msgid ""
 "is less than 100 MB free there. An absolute path of letters, digits and "
 "_ . / -"
 msgstr ""
+"Wo sie gespeichert werden. Leer = /media/hdd/.wpe-data oder /tmp/wpe-data, wenn dort "
+"weniger als 100 MB frei sind. Ein absoluter Pfad aus Buchstaben, Ziffern "
+"und _ . / -"
 
 #: ../src/plugin.py:1414 ../src/plugin.py:1422
 msgid "automatic"
-msgstr ""
+msgstr "automatisch"
 
 #: ../src/plugin.py:1392
 msgid "balanced (1.25x)"
-msgstr ""
+msgstr "ausgewogen (1,25x)"
 
 #: ../src/plugin.py:430
 msgid "could not start wpe_fb"
-msgstr ""
+msgstr "wpe_fb konnte nicht gestartet werden"
 
 #: ../src/plugin.py:1408 ../src/plugin.py:1412
 msgid "default"
-msgstr ""
+msgstr "Standard"
 
 #: ../src/plugin.py:1414
 msgid "disable fences"
-msgstr ""
+msgstr "Fences abschalten"
 
 #: ../src/plugin.py:1422
 msgid "enigma2 EGL renderer"
-msgstr ""
+msgstr "enigma2-EGL-Renderer"
 
 #: ../src/plugin.py:1392
 msgid "fast (1.0x)"
-msgstr ""
+msgstr "schnell (1,0x)"
 
 #: ../src/plugin.py:1422
 msgid "framebuffer"
-msgstr ""
+msgstr "Framebuffer"
 
 #: ../src/plugin.py:1371 ../src/plugin.py:1376 ../src/plugin.py:1380
 #: ../src/plugin.py:1394 ../src/plugin.py:1398 ../src/plugin.py:1410
 #: ../src/plugin.py:1418
 msgid "off"
-msgstr ""
+msgstr "aus"
 
 #: ../src/plugin.py:1376 ../src/plugin.py:1380 ../src/plugin.py:1394
 #: ../src/plugin.py:1398 ../src/plugin.py:1410 ../src/plugin.py:1418
 msgid "on"
-msgstr ""
+msgstr "an"
 
 #: ../src/plugin.py:1392
 msgid "sharp (1.5x)"
-msgstr ""
+msgstr "scharf (1,5x)"
 
 #: ../src/plugin.py:1414
 msgid "use fences"
-msgstr ""
+msgstr "Fences verwenden"
