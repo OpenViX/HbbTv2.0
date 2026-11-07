@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# usage: remove-hbbtv2-ipks /path/to/tmp/deploy/ipk [--delete]    (dry run unless --delete)
+DEPLOY="${1:?Usage: $0 /path/to/tmp/deploy/ipk [--delete]}"
+[[ -d "$DEPLOY" ]] || { echo "Error: directory not found: $DEPLOY" >&2; exit 1; }
+DELETE=0
+[[ "${2:-}" == "--delete" ]] && DELETE=1
+
+PACKAGES=(
+	enigma2-plugin-systemplugins-hbbtv2
+	enigma2-plugin-extensions-wpehbbtv
+	packagegroup-hbbtv2
+	orb
+	libwpewebkit-2.0
+	libwpewebkit-2.0-1
+	libwpewebkit-2.0-web-inspector-plugin
+	wpewebkit
+	libepoxy0
+	libepoxy
+	libsoup
+	libsoup-3.0
+	libsoup-3.0-0
+	libnghttp2
+	libnghttp2-14
+	nghttp2
+	brotli
+	libbrotli
+	woff2
+	ttf-dejavu-common
+	ttf-dejavu-sans
+	ttf-dejavu-sans-mono
+	ttf-dejavu-serif
+	ttf-dejavu-sans-condensed
+	ttf-dejavu-serif-condensed
+	ttf-dejavu-mathtexgyre
+)
+SUFFIXES=("" -dbg -dev -doc -locale -src -staticdev -bin)
+
+# one regex over the file names: <package><suffix>_<version>_<arch>.ipk
+ALT=$(printf '%s|' "${PACKAGES[@]}"); ALT=${ALT%|}
+SUF=$(printf '%s|' "${SUFFIXES[@]}"); SUF=${SUF%|}
+COUNT=0
+while IFS= read -r -d '' FILE; do
+	if (( DELETE )); then echo "Deleting: $FILE"; rm -f -- "$FILE"; else echo "Would delete: $FILE"; fi
+	COUNT=$((COUNT + 1))
+done < <(find "$DEPLOY" -mindepth 2 -maxdepth 2 -type f -name '*.ipk' -regextype posix-extended \
+	-regex ".*/(${ALT})(${SUF})_[^/]*\.ipk" -print0)
+
+if (( DELETE )); then echo "Done. Deleted $COUNT IPK file(s)."; else echo "Dry run complete. Found $COUNT matching IPK file(s). To delete them, rerun with --delete."; fi

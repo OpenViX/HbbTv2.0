@@ -40,3 +40,14 @@ python3 recreate_feed.py <folder>              # older versions are deleted
 python3 recreate_feed.py <folder> --keep-old   # older versions go to <folder>/old/
 ./collect_hbbtv_feed.py --index                # deletes
 ./collect_hbbtv_feed.py --index --keep-old     # passes the switch on
+
+========================================================================================================================================
+
+
+"remove-hbbtv2-ipks"
+====================
+
+Once we grab to the static folder remove the ipks from where they were built
+
+cd
+~/remove-hbbtv2-ipks ~/6.9/builds/openvix/developer/gb7252/tmp/deploy/ipk --delete
