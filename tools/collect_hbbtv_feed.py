@@ -15,7 +15,7 @@ ARCH = "cortexa15hf-neon-vfpv4"
 # deploy sub-folder -> (feed folder, package names)
 PACKAGES = {
 	ARCH: ("static-" + ARCH, [
-		"enigma2-plugin-extensions-wpehbbtv",
+		"enigma2-plugin-systemplugins-hbbtv2",
 		"orb",
 		"libwpewebkit-2.0-1",
 		"libwpewebkit-2.0-web-inspector-plugin",
@@ -37,7 +37,7 @@ PACKAGES = {
 # runtime package (libwpewebkit-2.0-1 -> libwpewebkit-2.0-dev), so the bases are listed here. A package that was not built is skipped.
 EXTRA_BASES = {
 	ARCH: [
-		"enigma2-plugin-extensions-wpehbbtv",
+		"enigma2-plugin-systemplugins-hbbtv2",
 		"orb",
 		"libwpewebkit-2.0",
 		"libepoxy",
