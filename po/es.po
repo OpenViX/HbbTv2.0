@@ -1,0 +1,567 @@
+# Spanish translations for HbbTv package.
+# Copyright (C) 2026 THE HbbTv'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the HbbTv package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: HbbTv 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-07 16:48+0100\n"
+"PO-Revision-Date: 2026-11-07 16:48+0100\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../src/plugin.py:1404 ../src/plugin.py:1406
+#, python-format
+msgid "%d MB"
+msgstr ""
+
+#: ../src/plugin.py:1371
+#, python-format
+msgid "%d ms"
+msgstr ""
+
+#: ../src/plugin.py:390 ../src/plugin.py:724
+#, python-format
+msgid "%s not found"
+msgstr ""
+
+#: ../src/plugin.py:1402
+msgid "1 (visible area only)"
+msgstr ""
+
+#: ../src/plugin.py:1402
+msgid "1.5"
+msgstr ""
+
+#: ../src/plugin.py:1408
+msgid "1024 x 256"
+msgstr ""
+
+#: ../src/plugin.py:1402
+msgid "2 (WebKit default)"
+msgstr ""
+
+#: ../src/plugin.py:1408
+msgid "256 x 256"
+msgstr ""
+
+#: ../src/plugin.py:1402
+msgid "3"
+msgstr ""
+
+#: ../src/plugin.py:1402
+msgid "4"
+msgstr ""
+
+#: ../src/plugin.py:1408
+msgid "512 x 256"
+msgstr ""
+
+#: ../src/plugin.py:1408
+msgid "512 x 512"
+msgstr ""
+
+#: ../src/plugin.py:1429
+msgid "A frame is never held back longer than this by the settle time."
+msgstr ""
+
+#: ../src/plugin.py:1407
+msgid ""
+"Above this size unused tile textures are released after 50 ms instead of 3 s."
+msgstr ""
+
+#: ../src/plugin.py:1427
+msgid ""
+"After a change, wait this long for the page to stop changing before showing "
+"the frame."
+msgstr ""
+
+#: ../src/plugin.py:1434
+msgid "Apply the hold to cleared (transparent) areas too."
+msgstr ""
+
+#: ../src/plugin.py:1403
+msgid ""
+"Area kept in tiles as a multiple of the visible area, squared (WebKit's own "
+"2 keeps four times the visible area). Lower = less GPU memory."
+msgstr ""
+
+#: ../src/plugin.py:1378
+msgid "Automatic banner when zapping"
+msgstr ""
+
+#: ../src/plugin.py:1423
+msgid ""
+"Automatic: enigma2's EGL renderer when it listens for the page (Nexus "
+"boxes), else the framebuffer."
+msgstr ""
+
+#: ../src/plugin.py:1415
+msgid ""
+"Automatic: fences on Nexus boxes, off on others. Disable them when the "
+"driver crashes in glFlush() or has no fence sync."
+msgstr ""
+
+#: ../src/plugin.py:1396
+msgid "CPU"
+msgstr ""
+
+#: ../src/plugin.py:1397
+msgid ""
+"CPU painting uses little GPU memory (no black tiles) and is only slightly "
+"slower. GPU painting keeps tiles as GPU textures."
+msgstr ""
+
+#: ../src/plugin.py:1395
+msgid ""
+"CSS transitions and animations last 1 ms and there is no smooth scrolling: "
+"fewer frames per key press."
+msgstr ""
+
+#: ../src/plugin.py:1399
+msgid "Composite the page in software: no GPU memory is used for page layers."
+msgstr ""
+
+#: ../src/plugin.py:1443
+msgid "Copy whole damage rectangles instead of trimming unchanged rows."
+msgstr ""
+
+#: ../src/plugin.py:1640
+#, python-format
+msgid "Could not delete %s: %s"
+msgstr ""
+
+#: ../src/plugin.py:1611
+#, python-format
+msgid "Could not write %s"
+msgstr ""
+
+#: ../src/plugin.py:1388
+msgid "Debug log (slower)"
+msgstr ""
+
+#: ../src/plugin.py:1410
+msgid "Deferred display lists (GPU painting)"
+msgstr ""
+
+#: ../src/plugin.py:1433
+msgid ""
+"Delay solid areas of a frame to hide a flash (can show as a late flash after "
+"an animation)."
+msgstr ""
+
+#: ../src/plugin.py:1591
+msgid "Delete stored data"
+msgstr ""
+
+#: ../src/plugin.py:1624
+#, python-format
+msgid ""
+"Delete the stored cache, cookies and local storage of the HbbTV applications "
+"(%s)?"
+msgstr ""
+
+#: ../src/plugin.py:1435
+msgid "Dip time"
+msgstr ""
+
+#: ../src/plugin.py:1442
+msgid "Do not cut a transparent hole for the video in the frame."
+msgstr ""
+
+#: ../src/plugin.py:1445
+msgid "Do not join Nexus"
+msgstr ""
+
+#: ../src/plugin.py:1444
+msgid "Draw the copied rectangles into the frame (debugging)."
+msgstr ""
+
+#: ../src/plugin.py:1435
+msgid "Duration of the picture dip copy (see wpe_fb dip_copy)."
+msgstr ""
+
+#: ../src/plugin.py:1431
+msgid ""
+"Frames this soon after a key press are the page's answer to it and are shown "
+"at once."
+msgstr ""
+
+#: ../src/plugin.py:1414
+msgid "GL fence sync"
+msgstr ""
+
+#: ../src/plugin.py:1396
+msgid "GPU"
+msgstr ""
+
+#: ../src/plugin.py:1412
+msgid "GPU painting threads"
+msgstr ""
+
+#: ../src/plugin.py:1646 ../src/plugin.py:1663
+msgid "HbbTV 2.0"
+msgstr ""
+
+#: ../src/plugin.py:1657
+msgid "HbbTV 2.0 Test"
+msgstr ""
+
+#: ../src/plugin.py:1589
+msgid "HbbTV 2.0 settings"
+msgstr ""
+
+#: ../src/plugin.py:731
+msgid "HbbTV 2.0 test page  (EXIT closes the page)"
+msgstr ""
+
+#: ../src/plugin.py:1659
+msgid "HbbTV 2.0: channel app"
+msgstr ""
+
+#: ../src/plugin.py:1661
+msgid "HbbTV 2.0: red button"
+msgstr ""
+
+#: ../src/plugin.py:1056
+#, python-format
+msgid "HbbTV applications of %s  (EXIT closes)"
+msgstr ""
+
+#: ../src/plugin.py:718
+#, python-format
+msgid ""
+"HbbTV is not supported on this system.\n"
+"\n"
+"It needs EGL %d.%d and OpenGL ES %d.%d or newer.\n"
+"enigma2 reports: EGL %s, OpenGL ES %s."
+msgstr ""
+
+#: ../src/plugin.py:1434
+msgid "Hold cleared areas"
+msgstr ""
+
+#: ../src/plugin.py:1432
+msgid "Hold solid areas"
+msgstr ""
+
+#: ../src/plugin.py:1385
+msgid ""
+"Ignore TLS certificate errors, show no WebKit error page for a failed load, "
+"and reload a crashed page instead of quitting."
+msgstr ""
+
+#: ../src/plugin.py:1380
+msgid "Keep cache, cookies and storage"
+msgstr ""
+
+#: ../src/plugin.py:1430
+msgid "Key window"
+msgstr ""
+
+#: ../src/plugin.py:1418
+msgid "Limit key repeat"
+msgstr ""
+
+#: ../src/plugin.py:1405
+msgid "Limit of the Skia GPU resource cache."
+msgstr ""
+
+#: ../src/plugin.py:356
+msgid "Loading HbbTV ..."
+msgstr ""
+
+#: ../src/plugin.py:1028
+msgid "Loading the list of HbbTV applications..."
+msgstr ""
+
+#: ../src/plugin.py:1428
+msgid "Longest delay"
+msgstr ""
+
+#: ../src/plugin.py:728
+#, python-format
+msgid "No .html pages in %s"
+msgstr ""
+
+#: ../src/plugin.py:1443
+msgid "No row trimming"
+msgstr ""
+
+#: ../src/plugin.py:1442
+msgid "No transparent hole"
+msgstr ""
+
+#: ../src/plugin.py:1411
+msgid ""
+"Off: paint with Skia GPU worker threads into pooled textures instead (a "
+"different memory use)."
+msgstr ""
+
+#: ../src/plugin.py:1422
+msgid "Output path"
+msgstr ""
+
+#: ../src/plugin.py:1396
+msgid "Page painting"
+msgstr ""
+
+#: ../src/plugin.py:1413
+msgid "Painting threads when deferred display lists are off."
+msgstr ""
+
+#: ../src/plugin.py:1419
+msgid ""
+"Pass the remote's auto-repeat on at most once per delivered frame: a held "
+"key moves fewer steps (a matter of feel, not speed)."
+msgstr ""
+
+#: ../src/plugin.py:1440
+msgid "Picture-in-graphics: change"
+msgstr ""
+
+#: ../src/plugin.py:1438
+msgid "Picture-in-graphics: first"
+msgstr ""
+
+#: ../src/plugin.py:1420
+msgid "Process priority (nice)"
+msgstr ""
+
+#: ../src/plugin.py:1437
+msgid ""
+"Re-read released buffers after this time to repair rows. Off by default: it "
+"can bring back older pixels."
+msgstr ""
+
+#: ../src/plugin.py:1376
+msgid "Red button starts the application"
+msgstr ""
+
+#: ../src/plugin.py:1663
+msgid "Red button, autostart, rendering, GPU memory, timing and stored data"
+msgstr ""
+
+#: ../src/plugin.py:1392
+msgid "Render quality"
+msgstr ""
+
+#: ../src/plugin.py:1590
+msgid "Restore defaults"
+msgstr ""
+
+#: ../src/plugin.py:1436
+msgid "Resync time"
+msgstr ""
+
+#: ../src/plugin.py:1659
+msgid ""
+"Run the HbbTV application of the current channel (ORB engine, mock platform)"
+msgstr ""
+
+#: ../src/plugin.py:1421
+msgid ""
+"Scheduling priority of wpe_fb and its web processes: -20 highest, 19 lowest."
+msgstr ""
+
+#: ../src/plugin.py:1614
+msgid "Set every setting to its default?"
+msgstr ""
+
+#: ../src/plugin.py:1426
+msgid "Settle time"
+msgstr ""
+
+#: ../src/plugin.py:1394
+msgid "Shorter animations"
+msgstr ""
+
+#: ../src/plugin.py:1444
+msgid "Show damage rectangles"
+msgstr ""
+
+#: ../src/plugin.py:1404
+msgid "Skia GPU cache"
+msgstr ""
+
+#: ../src/plugin.py:1445
+msgid ""
+"Skip the NxClient join (debugging; the page cannot get an EGL display on "
+"Nexus boxes without it)."
+msgstr ""
+
+#: ../src/plugin.py:1398
+msgid "Software compositing"
+msgstr ""
+
+#: ../src/plugin.py:1379
+msgid ""
+"Start the AUTOSTART application of a channel by itself, on top of the live "
+"picture, a few seconds after zapping."
+msgstr ""
+
+#: ../src/plugin.py:1661
+msgid ""
+"Start the HbbTV application of the current channel as the red button does "
+"(for Button Setup)"
+msgstr ""
+
+#: ../src/plugin.py:1382
+msgid "Storage directory"
+msgstr ""
+
+#: ../src/plugin.py:1636
+msgid "Stored data deleted."
+msgstr ""
+
+#: ../src/plugin.py:1387
+msgid ""
+"Text added to the user agent after the HbbTV token, for a broadcaster that "
+"only serves listed TV models (Mediaset: LGE; HbbTV-Box; LaTivu_2.1.0_2026). "
+"It is put in parentheses after the HbbTV token (WebKit refuses a semicolon "
+"outside them). Starting with Mozilla/ it replaces the whole user agent, "
+"which must then be valid itself and keep an HbbTV/x.y (...;vendor;model;...) "
+"token. Empty = unchanged."
+msgstr ""
+
+#: ../src/plugin.py:1409
+msgid ""
+"The GPU default is as wide as the viewport; smaller tiles allocate less "
+"memory per update."
+msgstr ""
+
+#: ../src/plugin.py:1381
+msgid ""
+"The HTTP cache (up to 75 MB), cookies and local storage of the applications "
+"survive between runs. Without a disk or USB stick they are kept in /tmp/wpe-"
+"data and lost at reboot."
+msgstr ""
+
+#: ../src/plugin.py:1072
+msgid "The current channel does not signal an HbbTV application (no AIT)."
+msgstr ""
+
+#: ../src/plugin.py:1389
+msgid ""
+"The page's console, media events, every network request and GStreamer output "
+"go to /tmp/wpe_fb.log."
+msgstr ""
+
+#: ../src/plugin.py:1393
+msgid ""
+"The read-back of a frame costs time in proportion to its pixels: 1.0 reacts "
+"about three times quicker than 1.5."
+msgstr ""
+
+#: ../src/plugin.py:1377
+msgid ""
+"The red button on a channel with an HbbTV application starts it (and gives "
+"it the red key)."
+msgstr ""
+
+#: ../src/plugin.py:1638
+msgid "There is nothing stored."
+msgstr ""
+
+#: ../src/plugin.py:1402
+msgid "Tile cover area"
+msgstr ""
+
+#: ../src/plugin.py:1408
+msgid "Tile size (GPU painting)"
+msgstr ""
+
+#: ../src/plugin.py:1604
+msgid "Time"
+msgstr ""
+
+#: ../src/plugin.py:1384
+msgid "Tolerant mode"
+msgstr ""
+
+#: ../src/plugin.py:1406
+msgid "Unused tile texture pool"
+msgstr ""
+
+#: ../src/plugin.py:1386
+msgid "User agent"
+msgstr ""
+
+#: ../src/plugin.py:1657
+msgid "WPE WebKit HbbTV 2.0 experiment: test pages on top of enigma2"
+msgstr ""
+
+#: ../src/plugin.py:1441
+msgid "Wait before a showing video rectangle moves or goes away."
+msgstr ""
+
+#: ../src/plugin.py:1439
+msgid ""
+"Wait before the first video rectangle appears in graphics (a loading "
+"animation must not flash the picture)."
+msgstr ""
+
+#: ../src/plugin.py:1383
+msgid ""
+"Where they live. Empty = /media/hdd/.wpe-data, or /tmp/wpe-data when there "
+"is less than 100 MB free there. An absolute path of letters, digits and "
+"_ . / -"
+msgstr ""
+
+#: ../src/plugin.py:1414 ../src/plugin.py:1422
+msgid "automatic"
+msgstr ""
+
+#: ../src/plugin.py:1392
+msgid "balanced (1.25x)"
+msgstr ""
+
+#: ../src/plugin.py:430
+msgid "could not start wpe_fb"
+msgstr ""
+
+#: ../src/plugin.py:1408 ../src/plugin.py:1412
+msgid "default"
+msgstr ""
+
+#: ../src/plugin.py:1414
+msgid "disable fences"
+msgstr ""
+
+#: ../src/plugin.py:1422
+msgid "enigma2 EGL renderer"
+msgstr ""
+
+#: ../src/plugin.py:1392
+msgid "fast (1.0x)"
+msgstr ""
+
+#: ../src/plugin.py:1422
+msgid "framebuffer"
+msgstr ""
+
+#: ../src/plugin.py:1371 ../src/plugin.py:1376 ../src/plugin.py:1380
+#: ../src/plugin.py:1394 ../src/plugin.py:1398 ../src/plugin.py:1410
+#: ../src/plugin.py:1418
+msgid "off"
+msgstr ""
+
+#: ../src/plugin.py:1376 ../src/plugin.py:1380 ../src/plugin.py:1394
+#: ../src/plugin.py:1398 ../src/plugin.py:1410 ../src/plugin.py:1418
+msgid "on"
+msgstr ""
+
+#: ../src/plugin.py:1392
+msgid "sharp (1.5x)"
+msgstr ""
+
+#: ../src/plugin.py:1414
+msgid "use fences"
+msgstr ""

@@ -40,6 +40,8 @@ from Screens.MessageBox import MessageBox
 from Screens.Screen import Screen
 from Screens.Setup import Setup
 
+from . import _
+
 try:
 	from enigma import getEGLVersionString, getGLESVersionString
 except ImportError:  # an enigma2 that does not report them
@@ -351,7 +353,7 @@ class WPEScreen(Screen):
 
 		# starting takes a few seconds (wpe_fb and its web process, then the page): say so until wpe_fb reports the first page ("loaded"),
 		# or after 30 s whatever happens
-		self["loading"] = Label("Loading HbbTV ...")
+		self["loading"] = Label(_("Loading HbbTV ..."))
 		if overlay:
 			self["overlay"] = Pixmap()  # the visible part of the application's frame (showOverlay)
 			self.overlaySeq = 0
@@ -385,7 +387,7 @@ class WPEScreen(Screen):
 			return  # a screen that is created as a dialog is started by its creator and again when its layout is finished: once is enough
 		self.started = True
 		if not os.path.exists(RUN):
-			self.session.open(MessageBox, f"{RUN} not found", MessageBox.TYPE_ERROR)
+			self.session.open(MessageBox, _("%s not found") % RUN, MessageBox.TYPE_ERROR)
 			self.finish()
 			return
 		env = "WPE_OWNER=%d " % os.getpid()  # run_wpe.sh ends wpe_fb when this process is gone (enigma2 restarted or crashed): no orphans
@@ -425,7 +427,7 @@ class WPEScreen(Screen):
 			except OSError as error:
 				print("[HbbTV2] cannot write %s: %s" % (AIT_FILE, error))
 		if self.container.execute(f'{env}{RUN} "{self.page}" > {LOG} 2>&1') != 0:
-			self.session.open(MessageBox, "could not start wpe_fb", MessageBox.TYPE_ERROR)
+			self.session.open(MessageBox, _("could not start wpe_fb"), MessageBox.TYPE_ERROR)
 			self.finish()
 
 	def appClosed(self, retval):
@@ -713,20 +715,20 @@ def glSupport():
 	glesVersion = versionOf(gles, r"OpenGL ES(?:-\w+)? (\d+)\.(\d+)")
 	if eglVersion and glesVersion and eglVersion >= MIN_EGL and glesVersion >= MIN_GLES:
 		return True, ""
-	return False, "HbbTV is not supported on this system.\n\nIt needs EGL %d.%d and OpenGL ES %d.%d or newer.\nenigma2 reports: EGL %s, OpenGL ES %s." % (
+	return False, _("HbbTV is not supported on this system.\n\nIt needs EGL %d.%d and OpenGL ES %d.%d or newer.\nenigma2 reports: EGL %s, OpenGL ES %s.") % (
 		MIN_EGL + MIN_GLES + (egl or "none", gles.split(' "', 1)[0] or "none"))
 
 
 def main(session, **kwargs):
 	if not os.path.isdir(PAGES):
-		session.open(MessageBox, f"{PAGES} not found", MessageBox.TYPE_ERROR)
+		session.open(MessageBox, _("%s not found") % PAGES, MessageBox.TYPE_ERROR)
 		return
 	pages = sorted(name for name in os.listdir(PAGES) if name.endswith(".html"))
 	if not pages:
-		session.open(MessageBox, f"No .html pages in {PAGES}", MessageBox.TYPE_ERROR)
+		session.open(MessageBox, _("No .html pages in %s") % PAGES, MessageBox.TYPE_ERROR)
 		return
 	choices = [(name[:-5], os.path.join(PAGES, name)) for name in pages]
-	session.openWithCallback(lambda choice: pageChosen(session, choice), ChoiceBox, title="HbbTV 2.0 test page  (EXIT closes the page)", list=choices)
+	session.openWithCallback(lambda choice: pageChosen(session, choice), ChoiceBox, title=_("HbbTV 2.0 test page  (EXIT closes the page)"), list=choices)
 
 
 def currentServiceAppUrl(session):
@@ -1023,7 +1025,7 @@ class ChannelAppLauncher:
 		ready = self.ready()
 		if self.box is None and not self.redButton and not ready and self.waited >= 0.6:  # (the red button starts the application without a message)
 			try:
-				self.box = self.session.open(MessageBox, "Loading the list of HbbTV applications...", MessageBox.TYPE_INFO, enable_input=False)
+				self.box = self.session.open(MessageBox, _("Loading the list of HbbTV applications..."), MessageBox.TYPE_INFO, enable_input=False)
 			except Exception as error:
 				print("[HbbTV2] cannot show the loading message: %s" % error)
 		if ready or self.ait.failed or self.waited >= AIT_TIMEOUT + 1:
@@ -1051,7 +1053,7 @@ class ChannelAppLauncher:
 			self.launch(autostart[0] if autostart else apps[0])
 			return
 		entries = [("%s%s" % (appName(app), "  (autostart)" if app["control"] == 1 else ""), app) for app in sorted(apps, key=lambda a: a["control"] != 1)]
-		self.session.openWithCallback(self.picked, ChoiceBox, title="HbbTV applications of %s  (EXIT closes)" % self.ait.channel[3], list=entries)
+		self.session.openWithCallback(self.picked, ChoiceBox, title=_("HbbTV applications of %s  (EXIT closes)") % self.ait.channel[3], list=entries)
 
 	def picked(self, choice):
 		if choice:
@@ -1067,7 +1069,7 @@ class ChannelAppLauncher:
 	def fallback(self):
 		url = currentServiceAppUrl(self.session)
 		if not url.startswith(("http://", "https://")):
-			self.session.open(MessageBox, "The current channel does not signal an HbbTV application (no AIT).", MessageBox.TYPE_INFO, timeout=5)
+			self.session.open(MessageBox, _("The current channel does not signal an HbbTV application (no AIT)."), MessageBox.TYPE_INFO, timeout=5)
 			return
 		pageChosen(self.session, (url, url), currentChannel(self.session), pressRed=self.redButton)
 
@@ -1366,85 +1368,85 @@ ON_OFF = [("0", "off"), ("1", "on")]
 
 
 def msOptions(*values):
-	return [(str(value), "%d ms" % value if value else "off") for value in values]
+	return [(str(value), _("%d ms") % value if value else _("off")) for value in values]
 
 
 SETTING_GROUPS = [
 	("Application", [
-		("WPE_REDBUTTON", "Red button starts the application", [("1", "on"), ("0", "off")], "1",
-			"The red button on a channel with an HbbTV application starts it (and gives it the red key)."),
-		("WPE_AUTOSTART", "Automatic banner when zapping", ON_OFF, "0",
-			"Start the AUTOSTART application of a channel by itself, on top of the live picture, a few seconds after zapping."),
-		("WPE_PERSIST", "Keep cache, cookies and storage", [("1", "yes"), ("0", "no")], "1",
-			"The HTTP cache (up to 75 MB), cookies and local storage of the applications survive between runs. Without a disk or USB stick they are kept in /tmp/wpe-data and lost at reboot."),
-		("WPE_PERSIST_DIR", "Storage directory", None, "",
-			"Where they live. Empty = /media/hdd/.wpe-data, or /tmp/wpe-data when there is less than 100 MB free there. An absolute path of letters, digits and _ . / -"),
-		("WPE_TOLERANT", "Tolerant mode", ON_OFF, "1",
-			"Ignore TLS certificate errors, show no WebKit error page for a failed load, and reload a crashed page instead of quitting."),
-		("WPE_UA", "User agent", None, "",
-			"Text added to the user agent after the HbbTV token, for a broadcaster that only serves listed TV models (Mediaset: LGE; HbbTV-Box; LaTivu_2.1.0_2026). It is put in parentheses after the HbbTV token (WebKit refuses a semicolon outside them). Starting with Mozilla/ it replaces the whole user agent, which must then be valid itself and keep an HbbTV/x.y (...;vendor;model;...) token. Empty = unchanged."),
-		("WPE_DEBUG", "Debug log (slower)", ON_OFF, "0",
-			"The page's console, media events, every network request and GStreamer output go to /tmp/wpe_fb.log."),
+		("WPE_REDBUTTON", _("Red button starts the application"), [("1", _("on")), ("0", _("off"))], "1",
+			_("The red button on a channel with an HbbTV application starts it (and gives it the red key).")),
+		("WPE_AUTOSTART", _("Automatic banner when zapping"), ON_OFF, "0",
+			_("Start the AUTOSTART application of a channel by itself, on top of the live picture, a few seconds after zapping.")),
+		("WPE_PERSIST", _("Keep cache, cookies and storage"), [("1", _("on")), ("0", _("off"))], "1",
+			_("The HTTP cache (up to 75 MB), cookies and local storage of the applications survive between runs. Without a disk or USB stick they are kept in /tmp/wpe-data and lost at reboot.")),
+		("WPE_PERSIST_DIR", _("Storage directory"), None, "",
+			_("Where they live. Empty = /media/hdd/.wpe-data, or /tmp/wpe-data when there is less than 100 MB free there. An absolute path of letters, digits and _ . / -")),
+		("WPE_TOLERANT", _("Tolerant mode"), ON_OFF, "1",
+			_("Ignore TLS certificate errors, show no WebKit error page for a failed load, and reload a crashed page instead of quitting.")),
+		("WPE_UA", _("User agent"), None, "",
+			_("Text added to the user agent after the HbbTV token, for a broadcaster that only serves listed TV models (Mediaset: LGE; HbbTV-Box; LaTivu_2.1.0_2026). It is put in parentheses after the HbbTV token (WebKit refuses a semicolon outside them). Starting with Mozilla/ it replaces the whole user agent, which must then be valid itself and keep an HbbTV/x.y (...;vendor;model;...) token. Empty = unchanged.")),
+		("WPE_DEBUG", _("Debug log (slower)"), ON_OFF, "0",
+			_("The page's console, media events, every network request and GStreamer output go to /tmp/wpe_fb.log.")),
 	]),
 	("Rendering", [
-		("WPE_HIDPI", "Render quality", [("1.5", "sharp (1.5x)"), ("1.25", "balanced (1.25x)"), ("1.0", "fast (1.0x)")], "1.0",
-			"The read-back of a frame costs time in proportion to its pixels: 1.0 reacts about three times quicker than 1.5."),
-		("WPE_FAST_ANIM", "Shorter animations", [("1", "on"), ("0", "off")], "1",
-			"CSS transitions and animations last 1 ms and there is no smooth scrolling: fewer frames per key press."),
-		("WPE_SKIA_CPU", "Page painting", [("1", "CPU"), ("0", "GPU")], "0",
-			"CPU painting uses little GPU memory (no black tiles) and is only slightly slower. GPU painting keeps tiles as GPU textures."),
-		("WPE_HW_ACCEL", "Software compositing", [("", "off"), ("never", "on")], "",
-			"Composite the page in software: no GPU memory is used for page layers."),
+		("WPE_HIDPI", _("Render quality"), [("1.5", _("sharp (1.5x)")), ("1.25", _("balanced (1.25x)")), ("1.0", _("fast (1.0x)"))], "1.0",
+			_("The read-back of a frame costs time in proportion to its pixels: 1.0 reacts about three times quicker than 1.5.")),
+		("WPE_FAST_ANIM", _("Shorter animations"), [("1", _("on")), ("0", _("off"))], "1",
+			_("CSS transitions and animations last 1 ms and there is no smooth scrolling: fewer frames per key press.")),
+		("WPE_SKIA_CPU", _("Page painting"), [("1", _("CPU")), ("0", _("GPU"))], "0",
+			_("CPU painting uses little GPU memory (no black tiles) and is only slightly slower. GPU painting keeps tiles as GPU textures.")),
+		("WPE_HW_ACCEL", _("Software compositing"), [("", _("off")), ("never", _("on"))], "",
+			_("Composite the page in software: no GPU memory is used for page layers.")),
 	]),
 	("GPU memory", [
-		("WPE_COVER_AREA", "Tile cover area", [("1", "1 (visible area only)"), ("1.5", "1.5"), ("2", "2 (WebKit default)"), ("3", "3"), ("4", "4")], "2",
-			"Area kept in tiles as a multiple of the visible area, squared (WebKit's own 2 keeps four times the visible area). Lower = less GPU memory."),
-		("WPE_SKIA_CACHE_MB", "Skia GPU cache", [(str(v), "%d MB" % v) for v in (8, 16, 32, 64, 128, 256)], "32",
-			"Limit of the Skia GPU resource cache."),
-		("WPE_TEXTURE_POOL_MB", "Unused tile texture pool", [(str(v), "%d MB" % v) for v in (16, 32, 64, 128, 256)], "16",
-			"Above this size unused tile textures are released after 50 ms instead of 3 s."),
-		("WPE_TILE_SIZE", "Tile size (GPU painting)", [("", "default"), ("256x256", "256 x 256"), ("512x256", "512 x 256"), ("512x512", "512 x 512"), ("1024x256", "1024 x 256")], "",
-			"The GPU default is as wide as the viewport; smaller tiles allocate less memory per update."),
-		("WPE_SKIA_DDL", "Deferred display lists (GPU painting)", [("1", "on"), ("0", "off")], "1",
-			"Off: paint with Skia GPU worker threads into pooled textures instead (a different memory use)."),
-		("WPE_SKIA_GPU_THREADS", "GPU painting threads", [("", "default")] + [(str(v), str(v)) for v in (1, 2, 3, 4)], "",
-			"Painting threads when deferred display lists are off."),
-		("WEBKIT_DISABLE_GL_FENCE", "GL fence sync", [("", "automatic"), ("0", "use fences"), ("1", "disable fences")], "",
-			"Automatic: fences on Nexus boxes, off on others. Disable them when the driver crashes in glFlush() or has no fence sync."),
+		("WPE_COVER_AREA", _("Tile cover area"), [("1", _("1 (visible area only)")), ("1.5", _("1.5")), ("2", _("2 (WebKit default)")), ("3", _("3")), ("4", _("4"))], "2",
+			_("Area kept in tiles as a multiple of the visible area, squared (WebKit's own 2 keeps four times the visible area). Lower = less GPU memory.")),
+		("WPE_SKIA_CACHE_MB", _("Skia GPU cache"), [(str(v), _("%d MB") % v) for v in (8, 16, 32, 64, 128, 256)], "32",
+			_("Limit of the Skia GPU resource cache.")),
+		("WPE_TEXTURE_POOL_MB", _("Unused tile texture pool"), [(str(v), _("%d MB") % v) for v in (16, 32, 64, 128, 256)], "16",
+			_("Above this size unused tile textures are released after 50 ms instead of 3 s.")),
+		("WPE_TILE_SIZE", _("Tile size (GPU painting)"), [("", _("default")), ("256x256", _("256 x 256")), ("512x256", _("512 x 256")), ("512x512", _("512 x 512")), ("1024x256", _("1024 x 256"))], "",
+			_("The GPU default is as wide as the viewport; smaller tiles allocate less memory per update.")),
+		("WPE_SKIA_DDL", _("Deferred display lists (GPU painting)"), [("1", _("on")), ("0", _("off"))], "1",
+			_("Off: paint with Skia GPU worker threads into pooled textures instead (a different memory use).")),
+		("WPE_SKIA_GPU_THREADS", _("GPU painting threads"), [("", _("default"))] + [(str(v), str(v)) for v in (1, 2, 3, 4)], "",
+			_("Painting threads when deferred display lists are off.")),
+		("WEBKIT_DISABLE_GL_FENCE", _("GL fence sync"), [("", _("automatic")), ("0", _("use fences")), ("1", _("disable fences"))], "",
+			_("Automatic: fences on Nexus boxes, off on others. Disable them when the driver crashes in glFlush() or has no fence sync.")),
 	]),
 	("Output and keys", [
-		("WPE_LIMIT_REPEAT", "Limit key repeat", [("1", "on"), ("0", "off")], "0",
-			"Pass the remote's auto-repeat on at most once per delivered frame: a held key moves fewer steps (a matter of feel, not speed)."),
-		("WPE_NICE", "Process priority (nice)", [(str(v), str(v)) for v in (-20, -10, -5, 0, 5, 10)], "-20",
-			"Scheduling priority of wpe_fb and its web processes: -20 highest, 19 lowest."),
-		("WPE_EGL", "Output path", [("", "automatic"), ("1", "enigma2 EGL renderer"), ("0", "framebuffer")], "",
-			"Automatic: enigma2's EGL renderer when it listens for the page (Nexus boxes), else the framebuffer."),
+		("WPE_LIMIT_REPEAT", _("Limit key repeat"), [("1", _("on")), ("0", _("off"))], "0",
+			_("Pass the remote's auto-repeat on at most once per delivered frame: a held key moves fewer steps (a matter of feel, not speed).")),
+		("WPE_NICE", _("Process priority (nice)"), [(str(v), str(v)) for v in (-20, -10, -5, 0, 5, 10)], "-20",
+			_("Scheduling priority of wpe_fb and its web processes: -20 highest, 19 lowest.")),
+		("WPE_EGL", _("Output path"), [("", _("automatic")), ("1", _("enigma2 EGL renderer")), ("0", _("framebuffer"))], "",
+			_("Automatic: enigma2's EGL renderer when it listens for the page (Nexus boxes), else the framebuffer.")),
 	]),
 	("Frame timing (EGL output)", [
-		("WPE_EGL_SETTLE_MS", "Settle time", msOptions(0, 30, 60, 100, 150, 250), "0",
-			"After a change, wait this long for the page to stop changing before showing the frame."),
-		("WPE_EGL_MAX_DELAY_MS", "Longest delay", msOptions(0, 100, 250, 500, 1000), "0",
-			"A frame is never held back longer than this by the settle time."),
-		("WPE_EGL_KEY_MS", "Key window", msOptions(0, 200, 400, 800), "400",
-			"Frames this soon after a key press are the page's answer to it and are shown at once."),
-		("WPE_EGL_HOLD_MS", "Hold solid areas", msOptions(0, 50, 100, 200, 400), "0",
-			"Delay solid areas of a frame to hide a flash (can show as a late flash after an animation)."),
-		("WPE_EGL_HOLD_CLEAR", "Hold cleared areas", ON_OFF, "0", "Apply the hold to cleared (transparent) areas too."),
-		("WPE_EGL_DIP_MS", "Dip time", msOptions(0, 150, 300, 600), "300", "Duration of the picture dip copy (see wpe_fb dip_copy)."),
-		("WPE_EGL_RESYNC_MS", "Resync time", msOptions(0, 100, 250, 500), "0",
-			"Re-read released buffers after this time to repair rows. Off by default: it can bring back older pixels."),
-		("WPE_EGL_PIG_FIRST_MS", "Picture-in-graphics: first", msOptions(1000, 2000, 3000, 5000), "3000",
-			"Wait before the first video rectangle appears in graphics (a loading animation must not flash the picture)."),
-		("WPE_EGL_PIG_SETTLE_MS", "Picture-in-graphics: change", msOptions(100, 300, 500, 1000), "300",
-			"Wait before a showing video rectangle moves or goes away."),
-		("WPE_EGL_NO_HOLE", "No transparent hole", ON_OFF, "0", "Do not cut a transparent hole for the video in the frame."),
-		("WPE_EGL_NO_TRIM", "No row trimming", ON_OFF, "0", "Copy whole damage rectangles instead of trimming unchanged rows."),
-		("WPE_EGL_DEBUG_RECTS", "Show damage rectangles", ON_OFF, "0", "Draw the copied rectangles into the frame (debugging)."),
-		("WPE_NO_NEXUS_JOIN", "Do not join Nexus", ON_OFF, "0", "Skip the NxClient join (debugging; the page cannot get an EGL display on Nexus boxes without it)."),
+		("WPE_EGL_SETTLE_MS", _("Settle time"), msOptions(0, 30, 60, 100, 150, 250), "0",
+			_("After a change, wait this long for the page to stop changing before showing the frame.")),
+		("WPE_EGL_MAX_DELAY_MS", _("Longest delay"), msOptions(0, 100, 250, 500, 1000), "0",
+			_("A frame is never held back longer than this by the settle time.")),
+		("WPE_EGL_KEY_MS", _("Key window"), msOptions(0, 200, 400, 800), "400",
+			_("Frames this soon after a key press are the page's answer to it and are shown at once.")),
+		("WPE_EGL_HOLD_MS", _("Hold solid areas"), msOptions(0, 50, 100, 200, 400), "0",
+			_("Delay solid areas of a frame to hide a flash (can show as a late flash after an animation).")),
+		("WPE_EGL_HOLD_CLEAR", _("Hold cleared areas"), ON_OFF, "0", _("Apply the hold to cleared (transparent) areas too.")),
+		("WPE_EGL_DIP_MS", _("Dip time"), msOptions(0, 150, 300, 600), "300", _("Duration of the picture dip copy (see wpe_fb dip_copy).")),
+		("WPE_EGL_RESYNC_MS", _("Resync time"), msOptions(0, 100, 250, 500), "0",
+			_("Re-read released buffers after this time to repair rows. Off by default: it can bring back older pixels.")),
+		("WPE_EGL_PIG_FIRST_MS", _("Picture-in-graphics: first"), msOptions(1000, 2000, 3000, 5000), "3000",
+			_("Wait before the first video rectangle appears in graphics (a loading animation must not flash the picture).")),
+		("WPE_EGL_PIG_SETTLE_MS", _("Picture-in-graphics: change"), msOptions(100, 300, 500, 1000), "300",
+			_("Wait before a showing video rectangle moves or goes away.")),
+		("WPE_EGL_NO_HOLE", _("No transparent hole"), ON_OFF, "0", _("Do not cut a transparent hole for the video in the frame.")),
+		("WPE_EGL_NO_TRIM", _("No row trimming"), ON_OFF, "0", _("Copy whole damage rectangles instead of trimming unchanged rows.")),
+		("WPE_EGL_DEBUG_RECTS", _("Show damage rectangles"), ON_OFF, "0", _("Draw the copied rectangles into the frame (debugging).")),
+		("WPE_NO_NEXUS_JOIN", _("Do not join Nexus"), ON_OFF, "0", _("Skip the NxClient join (debugging; the page cannot get an EGL display on Nexus boxes without it).")),
 	]),
 ]
 
-SETTINGS = [row for _, rows in SETTING_GROUPS for row in rows]
+SETTINGS = [row for x, rows in SETTING_GROUPS for row in rows]
 
 
 def settingName(key):
@@ -1584,9 +1586,9 @@ class WPESettings(Setup):
 	def __init__(self, session):
 		loadConf()  # (the conf file may have been edited since the plugin was loaded)
 		Setup.__init__(self, session, None)
-		self.title = "HbbTV 2.0 settings"
-		self["key_yellow"] = StaticText("Defaults")
-		self["key_blue"] = StaticText("Delete stored data")
+		self.title = _("HbbTV 2.0 settings")
+		self["key_yellow"] = StaticText(_("Restore defaults"))
+		self["key_blue"] = StaticText(_("Delete stored data"))
 		self["wpeActions"] = ActionMap(["ColorActions"], {"yellow": self.defaults, "blue": self.clear}, -1)
 		self.addSaveNotifier(self.saved)
 
@@ -1599,17 +1601,17 @@ class WPESettings(Setup):
 				if isOptional(options):
 					configlist.append((title, onElement(key), help))
 					if onElement(key).value:
-						configlist.append(("  Time", settingElement(key), help))
+						configlist.append(("  " + _("Time"), settingElement(key), help))
 				else:
 					configlist.append((title, settingElement(key), help))
 		self["config"].list = configlist
 
 	def saved(self):
 		if not writeSettings():
-			self.session.open(MessageBox, f"Could not write {CONF}", MessageBox.TYPE_ERROR)
+			self.session.open(MessageBox, _("Could not write %s") % CONF, MessageBox.TYPE_ERROR)
 
 	def defaults(self):
-		self.session.openWithCallback(self.defaultsConfirmed, MessageBox, "Set every setting to its default?", MessageBox.TYPE_YESNO, default=False)
+		self.session.openWithCallback(self.defaultsConfirmed, MessageBox, _("Set every setting to its default?"), MessageBox.TYPE_YESNO, default=False)
 
 	def defaultsConfirmed(self, yes):
 		if yes:
@@ -1619,7 +1621,7 @@ class WPESettings(Setup):
 
 	def clear(self):
 		self.session.openWithCallback(lambda yes: clearStoredData(self.session) if yes else None, MessageBox,
-			f"Delete the stored cache, cookies and local storage of the HbbTV applications ({persistDir()})?", MessageBox.TYPE_YESNO, default=False)
+			_("Delete the stored cache, cookies and local storage of the HbbTV applications (%s)?") % persistDir(), MessageBox.TYPE_YESNO, default=False)
 
 
 def settingsMenu(session, **kwargs):
@@ -1631,17 +1633,17 @@ def clearStoredData(session):
 	directory = persistDir()
 	try:
 		shutil.rmtree(directory)
-		session.open(MessageBox, "Stored data deleted.", MessageBox.TYPE_INFO, timeout=4)
+		session.open(MessageBox, _("Stored data deleted."), MessageBox.TYPE_INFO, timeout=4)
 	except FileNotFoundError:
-		session.open(MessageBox, "There is nothing stored.", MessageBox.TYPE_INFO, timeout=4)
+		session.open(MessageBox, _("There is nothing stored."), MessageBox.TYPE_INFO, timeout=4)
 	except OSError as e:
-		session.open(MessageBox, f"Could not delete {directory}: {e}", MessageBox.TYPE_ERROR)
+		session.open(MessageBox, _("Could not delete %s: %s") % (directory, e), MessageBox.TYPE_ERROR)
 
 
 def menuHook(menuid, **kwargs):
 	"""Main menu -> Setup: the settings screen."""
 	if menuid == "setup":
-		return [("HbbTV 2.0", settingsMenu, "hbbtv2_settings", 50)]
+		return [(_("HbbTV 2.0"), settingsMenu, "hbbtv2_settings", 50)]
 	return []
 
 
@@ -1652,12 +1654,12 @@ def redButtonApp(session, **kwargs):
 
 
 def Plugins(**kwargs):
-	return [PluginDescriptor(name="HbbTV 2.0 Test", description="WPE WebKit HbbTV 2.0 experiment: test pages on top of enigma2",
+	return [PluginDescriptor(name=_("HbbTV 2.0 Test"), description=_("WPE WebKit HbbTV 2.0 experiment: test pages on top of enigma2"),
 		where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=main),
-		PluginDescriptor(name="HbbTV 2.0: channel app", description="Run the HbbTV application of the current channel (ORB engine, mock platform)",
+		PluginDescriptor(name=_("HbbTV 2.0: channel app"), description=_("Run the HbbTV application of the current channel (ORB engine, mock platform)"),
 		where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=channelApp),
-		PluginDescriptor(name="HbbTV 2.0: red button", description="Start the HbbTV application of the current channel as the red button does (for Button Setup)",
+		PluginDescriptor(name=_("HbbTV 2.0: red button"), description=_("Start the HbbTV application of the current channel as the red button does (for Button Setup)"),
 		where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=redButtonApp),
-		PluginDescriptor(name="HbbTV 2.0", description="Red button, autostart, rendering, GPU memory, timing and stored data",
+		PluginDescriptor(name=_("HbbTV 2.0"), description=_("Red button, autostart, rendering, GPU memory, timing and stored data"),
 		where=PluginDescriptor.WHERE_MENU, fnc=menuHook),
 		PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionStart)]
