@@ -76,7 +76,9 @@ def deliver(args, src, target, arch, name, required, changed, problems):
 	"""Copy the newest deploy file of one package into the feed folder."""
 	files = find(src / arch, name, arch)
 	if not files:
-		if required:
+		if find(target, name, arch):  # not rebuilt (the deploy file is removed after each run): the feed has it already
+			print("kept     %s (%s)" % (name, arch))
+		elif required:
 			problems.append("%s/%s" % (arch, name))
 			print("MISSING  %s (%s)" % (name, arch))
 		return
