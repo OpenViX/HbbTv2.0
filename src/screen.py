@@ -93,6 +93,7 @@ class WPEScreen(Screen):
 				<widget name="overlay" position="0,0" size="1,1" zPosition="5" alphatest="blend" />
 			</screen>"""
 		Screen.__init__(self, session)
+		self.title = _("HbbTV 2.0")  # for summary screen
 		self.page = page
 		self.hwvideo = hwvideo
 		self.channel = channel  # (onid, tsid, sid, name) of the service the box is tuned to, for an application of a channel
