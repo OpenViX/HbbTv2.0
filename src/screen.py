@@ -69,6 +69,12 @@ def claimedKeys(mask):
 	return names
 
 
+def timer(callback):
+	t = eTimer()
+	t.callback.append(callback)
+	return t
+
+
 handovers = []  # a handover has to outlive its screen: its timer finishes the job after the screen is gone
 
 
@@ -95,8 +101,7 @@ class WPEScreen(Screen):
 		self.pressRed = pressRed  # started by the red button: press it for the user once the application is there
 		self.overlay = overlay  # runs on top of the live picture and enigma2's own screen (autostart): not a screen of its own, keys by key set
 		self.keyset = 0  # the keys the application has asked for (event "keyset"), see claimedKeys()
-		self.redTimer = eTimer()
-		self.redTimer.callback.append(lambda: self.sendKey("red"))
+		self.redTimer = timer(lambda: self.sendKey("red"))
 		screens.append(self)
 		self.handover = None
 		self.closing = False
@@ -109,17 +114,14 @@ class WPEScreen(Screen):
 		actions["exit"] = self.stop
 		self["actions"] = ActionMap(["HbbTV2Actions"], actions, -1)
 
-		self.killTimer = eTimer()
-		self.killTimer.callback.append(self.forceKill)
+		self.killTimer = timer(self.forceKill)
 
 		# events from wpe_fb (see "decoder handover" there): it writes "acquire" when media needs the decoder and "release" when
 		# it is done with it; polled, an enigma2 timer being the simplest way to watch a FIFO
 		self.evtFd = None
 		self.evtBuf = b""
-		self.evtTimer = eTimer()
-		self.evtTimer.callback.append(self.pollEvents)
-		self.freeTimer = eTimer()
-		self.freeTimer.callback.append(self.decoderFree)
+		self.evtTimer = timer(self.pollEvents)
+		self.freeTimer = timer(self.decoderFree)
 
 		# starting takes a few seconds (wpe_fb and its web process, then the page): say so until wpe_fb reports the first page ("loaded"),
 		# or after 30 s whatever happens
@@ -130,8 +132,7 @@ class WPEScreen(Screen):
 			self.overlayShown = False  # the widget is on the screen
 			self.overlayGeometry = None  # (x, y, w, h) of the picture on the screen; None while the screen is 1x1
 			self.overlayFull = False  # the application grew too big for pictures: wpe_fb draws it into the framebuffer now
-		self.loadingTimer = eTimer()
-		self.loadingTimer.callback.append(self.hideLoading)
+		self.loadingTimer = timer(self.hideLoading)
 
 		# the streams of the service, for the application: sent to wpe_fb whenever they change (the tracks of a channel change with the
 		# programme, and when the application selects one)
@@ -139,10 +140,8 @@ class WPEScreen(Screen):
 		self.audioTracks = {}  # audio pid -> enigma2's track number
 		self.subtitleTracks = {}  # subtitle pid -> enigma2's subtitle tuple
 		self.defaultAudio = None  # the audio pid in use when the application started: where "restore the default" goes back to
-		self.componentsTimer = eTimer()
-		self.componentsTimer.callback.append(self.pollComponents)
-		self.aitTimer = eTimer()
-		self.aitTimer.callback.append(self.pollAit)
+		self.componentsTimer = timer(self.pollComponents)
+		self.aitTimer = timer(self.pollAit)
 
 		self.container = eConsoleAppContainer()
 		self.container.appClosed.append(self.appClosed)
