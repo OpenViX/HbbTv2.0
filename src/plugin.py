@@ -30,7 +30,7 @@ from urllib.parse import urlparse
 
 from enigma import eActionMap, eConsoleAppContainer, ePoint, eSize, eTimer, getDesktop, iPlayableService, iServiceInformation
 from Components.ActionMap import ActionMap
-from Components.config import ConfigSelection, ConfigSubsection, ConfigText, ConfigYesNo, config, configfile
+from Components.config import ConfigSelection, ConfigText, ConfigYesNo
 from Components.Sources.StaticText import StaticText
 from Components.Pixmap import Pixmap
 from Plugins.Plugin import PluginDescriptor
@@ -1446,110 +1446,89 @@ SETTING_GROUPS = [
 	]),
 ]
 
-SETTINGS = [row for x, rows in SETTING_GROUPS for row in rows]
+class Setting:
+	"""A row of the table and its config element(s): a text field, an on/off switch, a time that can be switched off (a switch, and the time), or a choice."""
 
-
-def settingName(key):
-	return key.lower()
-
-
-def switchValues(options):
-	"""(value for off, value for on) of an on/off (yes/no) setting, shown as enigma2's graphical switch (ConfigYesNo); None for any other setting."""
-	if options is None or len(options) != 2:
-		return None
-	texts = dict((text, value) for value, text in options)
-	for off, on in (("off", "on"), ("no", "yes")):
-		if set(texts) == {off, on}:
-			return texts[off], texts[on]
-	return None
-
-
-def isSwitch(options):
-	return switchValues(options) is not None
-
-
-def isOptional(options):
-	"""A setting with a choice "off" (value 0) among others (a time that can be switched off): a switch, and the time when it is on."""
-	return options is not None and not isSwitch(options) and ("0", "off") in options
-
-
-def timeOptions(options):
-	return [option for option in options if option != ("0", "off")]
-
-
-def configOf(key, options, default):
-	"""The config element of a setting: config.plugins.hbbtv2.<key>, stored in enigma2's settings like any plugin's."""
-	if options is None:
-		return ConfigText(default=default, fixed_size=False, visible_width=40)
-	if isSwitch(options):
-		return ConfigYesNo(default=default == switchValues(options)[1])
-	if isOptional(options):
-		choices = timeOptions(options)
-		return ConfigSelection(choices=choices, default=default if default != "0" else choices[0][0])
-	return ConfigSelection(choices=[(option or "-", text) for option, text in options], default=default or "-")  # (the empty option as "-": a key of "" is not safe in every enigma2)
-
-
-config.plugins.hbbtv2 = ConfigSubsection()
-for _key, _title, _options, _default, _help in SETTINGS:
-	setattr(config.plugins.hbbtv2, settingName(_key), configOf(_key, _options, _default))
-	if isOptional(_options):  # the switch in front of the time
-		setattr(config.plugins.hbbtv2, settingName(_key) + "_on", ConfigYesNo(default=_default != "0"))
-
-
-def settingElement(key):
-	return getattr(config.plugins.hbbtv2, settingName(key))
-
-
-def onElement(key):
-	return getattr(config.plugins.hbbtv2, settingName(key) + "_on")
-
-
-def setSetting(key, options, value):
-	"""Put a conf value into the config element(s) of a setting."""
-	try:
-		element = settingElement(key)
-		if isSwitch(options):
-			element.value = value == switchValues(options)[1]
-		elif isOptional(options):
-			onElement(key).value = value != "0"
-			if value != "0":
-				element.value = value
+	def __init__(self, key, title, options, default, help):
+		self.key, self.title, self.default, self.help = key, title, default, help
+		self.text = options is None
+		self.switch = self.on = None  # self.switch: (value for off, value for on) of an on/off (yes/no) setting, shown as enigma2's graphical switch (ConfigYesNo)
+		if options is not None and len(options) == 2:
+			texts = dict((text, value) for value, text in options)
+			for off, on in (("off", "on"), ("no", "yes")):
+				if set(texts) == {off, on}:
+					self.switch = texts[off], texts[on]
+		if self.text:
+			self.element = ConfigText(default=default, fixed_size=False, visible_width=40)
+		elif self.switch:
+			self.element = ConfigYesNo(default=default == self.switch[1])
+		elif ("0", "off") in options:  # a choice "off" (value 0) among others: self.on is the switch in front of the time
+			choices = [option for option in options if option != ("0", "off")]
+			self.element = ConfigSelection(choices=choices, default=default if default != "0" else choices[0][0])
+			self.on = ConfigYesNo(default=default != "0")
 		else:
-			element.value = value or "-" if options is not None else value
-	except Exception:
-		pass  # a value this setting does not offer: left as it was
+			self.element = ConfigSelection(choices=[(option or "-", text) for option, text in options], default=default or "-")  # (the empty option as "-": a key of "" is not safe in every enigma2)
+
+	def load(self, value):
+		"""Put a conf value into the config element(s)."""
+		try:
+			if self.switch:
+				self.element.value = value == self.switch[1]
+			elif self.on:
+				self.on.value = value != "0"
+				if value != "0":
+					self.element.value = value
+			else:
+				self.element.value = value if self.text else value or "-"
+		except Exception:
+			pass  # a value this setting does not offer: left as it was
+
+	def reset(self):
+		self.element.value = self.element.default
+		if self.on:
+			self.on.value = self.on.default
+
+	def save(self):
+		self.element.save()
+		if self.on:
+			self.on.save()
+
+	def value(self):
+		"""The value for the conf file ("" = not set)."""
+		value = self.element.value
+		if self.switch:
+			return self.switch[1 if value else 0]
+		if self.on:
+			return value if self.on.value else "0"
+		return "" if value == "-" else value.strip()
+
+
+GROUPS = [[Setting(*row) for row in rows] for group, rows in SETTING_GROUPS]
+SETTINGS = [setting for group in GROUPS for setting in group]
 
 
 def loadConf():
-	"""Show the values of the conf file in the config (a key it does not have is at its default), as the saved state: nothing is "changed" until the user
-	changes it. Without a conf file the saved config stays."""
+	"""Show the values of the conf file in the settings (a key it does not have is at its default), as the saved state: nothing is "changed" until the user
+	changes it. Without a conf file they stay at their defaults."""
 	try:
 		with open(CONF) as f:
 			conf = dict(line.strip().partition("=")[::2] for line in f if "=" in line)
 	except OSError:
 		return
-	for key, title, options, default, help in SETTINGS:
-		setSetting(key, options, conf.get(key, default))
-		settingElement(key).save()
-		if isOptional(options):
-			onElement(key).save()
+	for setting in SETTINGS:
+		if setting.key in conf:
+			setting.load(conf[setting.key])
+		else:
+			setting.reset()
+		setting.save()
 
 
 loadConf()
 
 
-def valueOf(key, options):
-	value = settingElement(key).value
-	if isSwitch(options):
-		return switchValues(options)[1 if value else 0]
-	if isOptional(options):
-		return value if onElement(key).value else "0"
-	return "" if value == "-" else value.strip()
-
-
 def readSettings():
 	"""{key: value} of every setting, as run_wpe.sh gets it ("" = not set)."""
-	return {row[0]: valueOf(row[0], row[2]) for row in SETTINGS}
+	return {setting.key: setting.value() for setting in SETTINGS}
 
 
 def persistDir():
@@ -1560,9 +1539,7 @@ def persistDir():
 def writeSettings():
 	"""Write /etc/enigma2/hbbtv2.conf, which run_wpe.sh reads, from the config. Only what differs from the default is written. Keys this plugin does
 	not know (e.g. WEBKIT_* set by hand) are kept as they are."""
-	values = readSettings()
-	known = {row[0] for row in SETTINGS}
-	defaults = {row[0]: row[3] for row in SETTINGS}
+	known = {setting.key for setting in SETTINGS}
 	extra = []
 	try:
 		with open(CONF) as f:
@@ -1571,7 +1548,7 @@ def writeSettings():
 		pass
 	try:
 		with open(CONF, "w") as f:
-			f.write("".join(f"{key}={value}\n" for key, value in values.items() if value != defaults[key] and value != ""))
+			f.write("".join(f"{setting.key}={value}\n" for setting in SETTINGS if (value := setting.value()) != setting.default and value != ""))
 			f.write("".join(line + "\n" for line in extra))
 		return True
 	except OSError:
@@ -1594,16 +1571,16 @@ class WPESettings(Setup):
 
 	def createSetup(self):
 		configlist = []
-		for number, (group, rows) in enumerate(SETTING_GROUPS):
+		for number, group in enumerate(GROUPS):
 			if number:
 				configlist.append(("---",))
-			for key, title, options, default, help in rows:
-				if isOptional(options):
-					configlist.append((title, onElement(key), help))
-					if onElement(key).value:
-						configlist.append(("  " + _("Time"), settingElement(key), help))
+			for setting in group:
+				if setting.on:
+					configlist.append((setting.title, setting.on, setting.help))
+					if setting.on.value:
+						configlist.append(("  " + _("Time"), setting.element, setting.help))
 				else:
-					configlist.append((title, settingElement(key), help))
+					configlist.append((setting.title, setting.element, setting.help))
 		self["config"].list = configlist
 
 	def saved(self):
@@ -1615,8 +1592,8 @@ class WPESettings(Setup):
 
 	def defaultsConfirmed(self, yes):
 		if yes:
-			for key, title, options, default, help in SETTINGS:
-				setSetting(key, options, default)
+			for setting in SETTINGS:
+				setting.reset()
 			self.createSetup()
 
 	def clear(self):
