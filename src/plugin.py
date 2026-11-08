@@ -311,12 +311,19 @@ handovers = []  # a handover has to outlive its screen: its timer finishes the j
 
 
 class WPEScreen(Screen):
-	# skin is set in main() from the real desktop size (same pattern as DVDOverlay)
-	skin = """<screen name="WPEScreen" position="0,0" size="1920,1080" flags="wfNoBorder" backgroundColor="transparent">
-		<widget name="loading" position="640,495" size="640,90" font="Regular;36" halign="center" valign="center" foregroundColor="#ffffff" backgroundColor="#c0101820" zPosition="10" />
+	skin = """<screen name="WPEScreen" position="0,0" size="e,e" resolution="1920,1080" flags="wfNoBorder" backgroundColor="transparent">
+		<widget name="loading" position="center,center" size="640,90" font="Regular;36" halign="center" valign="center" foregroundColor="#ffffff" backgroundColor="#c0101820" zPosition="10" />
 	</screen>"""
 
 	def __init__(self, session, page, hwvideo=False, channel=None, ait=None, pressRed=False, overlay=False):
+		if overlay:
+			# The skin of the automatic banner: a transparent screen with one Pixmap widget, which shows the visible part of the application's frame (a PNG
+			# from wpe_fb, see showOverlay) on top of everything enigma2 has on the screen. The screen is 1x1 until there is something to show, and
+			# then only as big as that (moved and resized in showOverlay): a window over the whole desktop makes enigma2 redraw everything below it, and the
+			# infobar flickered when the banner started.
+			self.skin = """<screen name="WPEScreen" position="0,0" size="1,1" flags="wfNoBorder" backgroundColor="transparent">
+				<widget name="overlay" position="0,0" size="1,1" zPosition="5" alphatest="blend" />
+			</screen>"""
 		Screen.__init__(self, session)
 		self.page = page
 		self.hwvideo = hwvideo
@@ -688,10 +695,6 @@ class WPEScreen(Screen):
 
 def pageChosen(session, choice, channel=None, ait=None, pressRed=False):
 	if choice:
-		size = getDesktop(0).size()
-		WPEScreen.skin = f"""<screen name="WPEScreen" position="0,0" size="{size.width()},{size.height()}" flags="wfNoBorder" backgroundColor="transparent">
-			<widget name="loading" position="{(size.width() - 640) // 2},{(size.height() - 90) // 2}" size="640,90" font="Regular;36" halign="center" valign="center" foregroundColor="#ffffff" backgroundColor="#c0101820" zPosition="10" />
-		</screen>"""
 		# pages that play video on the hardware plane (hw_*.html) and real applications (URLs, which may play video whenever
 		# they like) take the decoder from the live service; the other test pages leave the live picture alone
 		page = choice[1]
@@ -1187,16 +1190,6 @@ def takePrefetched(session):
 	return prefetchers[0].take() if prefetchers else None
 
 
-def prepareSkin():
-	"""The skin of the automatic banner: a transparent screen with one Pixmap widget, which shows the visible part of the application's frame (a PNG
-	from wpe_fb, see WPEScreen.showOverlay) on top of everything enigma2 has on the screen. The screen is 1x1 until there is something to show, and
-	then only as big as that (moved and resized in showOverlay): a window over the whole desktop makes enigma2 redraw everything below it, and the
-	infobar flickered when the banner started."""
-	WPEScreen.skin = """<screen name="WPEScreen" position="0,0" size="1,1" flags="wfNoBorder" backgroundColor="transparent">
-		<widget name="overlay" position="0,0" size="1,1" zPosition="5" alphatest="blend" />
-	</screen>"""
-
-
 class AutoStart:
 	"""The automatic HbbTV banner: when the box settles on a service whose AIT has an AUTOSTART application, it runs on top of the live picture (wpe_fb
 	--overlay-png: the visible part of its frame is shown by a Pixmap widget of a screen on top of enigma2's own), and the keys it has asked for - and
@@ -1277,7 +1270,6 @@ class AutoStart:
 
 	def startOverlay(self, collection):
 		try:
-			prepareSkin()
 			overlay = self.session.instantiateDialog(WPEScreen, "ait:", True, collection.channel, collection, False, True)
 		except Exception as error:
 			print("[HbbTV2] autostart: cannot create the overlay: %s" % error)
