@@ -21,6 +21,7 @@ import os
 import queue
 import re
 import select
+import shlex
 import socket
 import struct
 import threading
@@ -426,7 +427,7 @@ class WPEScreen(Screen):
 				self.aitTimer.start(500, False)
 			except OSError as error:
 				print("[HbbTV2] cannot write %s: %s" % (AIT_FILE, error))
-		if self.container.execute(f'{env}{RUN} "{self.page}" > {LOG} 2>&1') != 0:
+		if self.container.execute(f'{env}{RUN} {shlex.quote(self.page)} > {LOG} 2>&1') != 0:
 			self.session.open(MessageBox, _("could not start wpe_fb"), MessageBox.TYPE_ERROR)
 			self.finish()
 
