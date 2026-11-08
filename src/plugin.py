@@ -951,7 +951,10 @@ class AitCollection:
 			if self.parsed is None:
 				found = []
 				for number in sorted(self.sections):
-					found.extend(parseAit(self.sections[number]))
+					try:
+						found.extend(parseAit(self.sections[number]))
+					except (struct.error, IndexError):  # a section whose lengths run past its end: skipped
+						pass
 				self.parsed = found
 			return list(self.parsed)
 
