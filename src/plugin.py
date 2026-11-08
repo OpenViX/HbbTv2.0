@@ -1364,7 +1364,7 @@ def sessionStart(reason, session=None, **kwargs):
 # "default" is what run_wpe.sh / wpe_fb use when the key is absent from the conf: a value equal to it is not written, so the conf only holds what
 # was changed (and "Reset to defaults" empties it). An option with the value "" stands for "not set: leave it to WebKit / the driver".
 # Settings that are not in a group below are kept in the conf untouched.
-ON_OFF = [("0", "off"), ("1", "on")]
+ON_OFF = [("0", _("off")), ("1", _("on"))]
 
 
 def msOptions(*values):
@@ -1451,19 +1451,19 @@ class Setting:
 
 	def __init__(self, key, title, options, default, help):
 		self.key, self.title, self.default, self.help = key, title, default, help
+		off, on = _("off"), _("on")  # (the texts as the table has them, translated or not)
 		self.text = options is None
 		self.switch = self.on = None  # self.switch: (value for off, value for on) of an on/off (yes/no) setting, shown as enigma2's graphical switch (ConfigYesNo)
 		if options is not None and len(options) == 2:
 			texts = dict((text, value) for value, text in options)
-			for off, on in (("off", "on"), ("no", "yes")):
-				if set(texts) == {off, on}:
-					self.switch = texts[off], texts[on]
+			if set(texts) == {off, on}:
+				self.switch = texts[off], texts[on]
 		if self.text:
 			self.element = ConfigText(default=default, fixed_size=False, visible_width=40)
 		elif self.switch:
 			self.element = ConfigYesNo(default=default == self.switch[1])
-		elif ("0", "off") in options:  # a choice "off" (value 0) among others: self.on is the switch in front of the time
-			choices = [option for option in options if option != ("0", "off")]
+		elif ("0", off) in options:  # a choice "off" (value 0) among others: self.on is the switch in front of the time
+			choices = [option for option in options if option != ("0", off)]
 			self.element = ConfigSelection(choices=choices, default=default if default != "0" else choices[0][0])
 			self.on = ConfigYesNo(default=default != "0")
 		else:
